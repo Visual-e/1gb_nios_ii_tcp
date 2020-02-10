@@ -1,4 +1,4 @@
-//Legal Notice: (C)2016 Altera Corporation. All rights reserved.  Your
+//Legal Notice: (C)2020 Altera Corporation. All rights reserved.  Your
 //use of Altera Corporation's design tools, logic functions and other
 //software and tools, and its AMPP partner logic functions, and any
 //output files any of the foregoing (including device programming or
@@ -82,65 +82,66 @@ module control_status_slave_which_resides_within_nios_system_sgdma_rx (
   input            t_eop;
   input            write_go;
 
-  reg              busy;
-  reg              can_have_new_chain_complete;
-  reg              chain_completed;
-  reg              chain_completed_int;
-  wire             chain_completed_int_rise;
-  wire             clear_chain_completed;
-  wire             clear_descriptor_completed;
-  wire             clear_eop_encountered;
-  wire             clear_error;
-  reg              clear_interrupt;
-  wire             clear_run;
-  reg     [ 31: 0] control_reg;
-  wire             control_reg_en;
-  wire             csr_control;
-  reg              csr_irq;
-  reg     [ 31: 0] csr_readdata;
-  wire             csr_status;
-  reg              delayed_chain_completed_int;
-  reg              delayed_csr_write;
-  reg     [  7: 0] delayed_descriptor_counter;
-  reg              delayed_descriptor_write_write;
-  reg              delayed_eop_encountered;
-  wire    [  7: 0] delayed_max_desc_processed;
-  reg              delayed_run;
-  reg              descriptor_completed;
-  reg     [  7: 0] descriptor_counter;
-  wire    [ 31: 0] descriptor_pointer_data;
-  reg     [ 31: 0] descriptor_pointer_lower_reg;
-  wire             descriptor_pointer_lower_reg_en;
-  wire    [ 31: 0] descriptor_pointer_lower_reg_out;
-  reg     [ 31: 0] descriptor_pointer_upper_reg;
-  wire             descriptor_pointer_upper_reg_en;
-  wire    [ 31: 0] descriptor_pointer_upper_reg_out;
-  reg              descriptor_read_read_r;
-  wire             descriptor_read_read_rising;
-  wire             descriptor_write_write_fall;
-  reg              do_restart;
-  reg              do_restart_compare;
-  reg              eop_encountered;
-  wire             eop_encountered_rise;
-  reg              error;
-  wire    [  3: 0] hw_version;
-  wire             ie_chain_completed;
-  wire             ie_descriptor_completed;
-  wire             ie_eop_encountered;
-  wire             ie_error;
-  wire             ie_global;
-  wire             ie_max_desc_processed;
-  wire    [  7: 0] max_desc_processed;
-  wire             park;
-  wire             poll_en;
-  wire             pollen_clear_run;
-  wire             run;
-  wire    [ 31: 0] status_reg;
-  wire             stop_dma_error;
-  wire             sw_reset;
-  reg     [ 15: 0] timeout_counter;
-  wire    [ 10: 0] timeout_reg;
-  wire             version_reg;
+
+reg              busy;
+reg              can_have_new_chain_complete;
+reg              chain_completed;
+reg              chain_completed_int;
+wire             chain_completed_int_rise;
+wire             clear_chain_completed;
+wire             clear_descriptor_completed;
+wire             clear_eop_encountered;
+wire             clear_error;
+reg              clear_interrupt;
+wire             clear_run;
+reg     [ 31: 0] control_reg;
+wire             control_reg_en;
+wire             csr_control;
+reg              csr_irq;
+reg     [ 31: 0] csr_readdata;
+wire             csr_status;
+reg              delayed_chain_completed_int;
+reg              delayed_csr_write;
+reg     [  7: 0] delayed_descriptor_counter;
+reg              delayed_descriptor_write_write;
+reg              delayed_eop_encountered;
+wire    [  7: 0] delayed_max_desc_processed;
+reg              delayed_run;
+reg              descriptor_completed;
+reg     [  7: 0] descriptor_counter;
+wire    [ 31: 0] descriptor_pointer_data;
+reg     [ 31: 0] descriptor_pointer_lower_reg;
+wire             descriptor_pointer_lower_reg_en;
+wire    [ 31: 0] descriptor_pointer_lower_reg_out;
+reg     [ 31: 0] descriptor_pointer_upper_reg;
+wire             descriptor_pointer_upper_reg_en;
+wire    [ 31: 0] descriptor_pointer_upper_reg_out;
+reg              descriptor_read_read_r;
+wire             descriptor_read_read_rising;
+wire             descriptor_write_write_fall;
+reg              do_restart;
+reg              do_restart_compare;
+reg              eop_encountered;
+wire             eop_encountered_rise;
+reg              error;
+wire    [  3: 0] hw_version;
+wire             ie_chain_completed;
+wire             ie_descriptor_completed;
+wire             ie_eop_encountered;
+wire             ie_error;
+wire             ie_global;
+wire             ie_max_desc_processed;
+wire    [  7: 0] max_desc_processed;
+wire             park;
+wire             poll_en;
+wire             pollen_clear_run;
+wire             run;
+wire    [ 31: 0] status_reg;
+wire             stop_dma_error;
+wire             sw_reset;
+reg     [ 15: 0] timeout_counter;
+wire    [ 10: 0] timeout_reg;
+wire             version_reg;
   //csr, which is an e_avalon_slave
   //Control Status Register (Readdata)
   always @(posedge clk or negedge reset_n)
@@ -469,9 +470,10 @@ module descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fi
   input            controlbitsfifo_wrreq;
   input            reset;
 
-  wire             controlbitsfifo_empty;
-  wire             controlbitsfifo_full;
-  wire    [  6: 0] controlbitsfifo_q;
+
+wire             controlbitsfifo_empty;
+wire             controlbitsfifo_full;
+wire    [  6: 0] controlbitsfifo_q;
   scfifo descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fifo_controlbitsfifo
     (
       .aclr (reset),
@@ -485,7 +487,7 @@ module descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fi
     );
 
   defparam descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fifo_controlbitsfifo.add_ram_output_register = "ON",
-           descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fifo_controlbitsfifo.intended_device_family = "CYCLONEIVGX",
+           descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fifo_controlbitsfifo.intended_device_family = "CYCLONE10LP",
            descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fifo_controlbitsfifo.lpm_numwords = 2,
            descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fifo_controlbitsfifo.lpm_showahead = "OFF",
            descriptor_read_which_resides_within_nios_system_sgdma_rx_control_bits_fifo_controlbitsfifo.lpm_type = "scfifo",
@@ -571,50 +573,51 @@ module descriptor_read_which_resides_within_nios_system_sgdma_rx (
   input            reset_n;
   input            run;
 
-  wire    [  3: 0] atlantic_channel;
-  wire    [ 15: 0] bytes_to_transfer;
-  reg              chain_run;
-  wire    [103: 0] command_fifo_data;
-  reg              command_fifo_wrreq;
-  wire             command_fifo_wrreq_in;
-  wire    [  7: 0] control;
-  wire    [  6: 0] controlbitsfifo_data;
-  wire             controlbitsfifo_empty;
-  wire             controlbitsfifo_full;
-  wire    [  6: 0] controlbitsfifo_q;
-  wire             controlbitsfifo_wrreq;
-  reg              delayed_desc_reg_en;
-  reg              delayed_run;
-  reg     [ 31: 0] desc_address_fifo_data;
-  wire             desc_address_fifo_wrreq;
-  reg     [255: 0] desc_assembler;
-  reg              desc_read_start;
-  reg     [255: 0] desc_reg;
-  wire             desc_reg_en;
-  reg     [ 31: 0] descriptor_read_address;
-  reg              descriptor_read_completed;
-  wire             descriptor_read_completed_in;
-  reg              descriptor_read_read;
-  wire             fifos_not_full;
-  wire             generate_eop;
-  wire             got_one_descriptor;
-  wire    [255: 0] init_descriptor;
-  wire    [ 31: 0] next_desc;
-  wire             owned_by_hw;
-  wire    [255: 0] pollen_clear_run_desc;
-  reg     [  3: 0] posted_desc_counter;
-  reg              posted_read_queued;
-  wire    [ 31: 0] read_address;
-  wire    [  7: 0] read_burst;
-  wire             read_fixed_address;
-  reg     [  3: 0] received_desc_counter;
-  reg              run_rising_edge;
-  wire             run_rising_edge_in;
-  reg              started;
-  wire             started_in;
-  wire    [ 31: 0] write_address;
-  wire    [  7: 0] write_burst;
-  wire             write_fixed_address;
+
+wire    [  3: 0] atlantic_channel;
+wire    [ 15: 0] bytes_to_transfer;
+reg              chain_run;
+wire    [103: 0] command_fifo_data;
+reg              command_fifo_wrreq;
+wire             command_fifo_wrreq_in;
+wire    [  7: 0] control;
+wire    [  6: 0] controlbitsfifo_data;
+wire             controlbitsfifo_empty;
+wire             controlbitsfifo_full;
+wire    [  6: 0] controlbitsfifo_q;
+wire             controlbitsfifo_wrreq;
+reg              delayed_desc_reg_en;
+reg              delayed_run;
+reg     [ 31: 0] desc_address_fifo_data;
+wire             desc_address_fifo_wrreq;
+reg     [255: 0] desc_assembler;
+reg              desc_read_start;
+reg     [255: 0] desc_reg;
+wire             desc_reg_en;
+reg     [ 31: 0] descriptor_read_address;
+reg              descriptor_read_completed;
+wire             descriptor_read_completed_in;
+reg              descriptor_read_read;
+wire             fifos_not_full;
+wire             generate_eop;
+wire             got_one_descriptor;
+wire    [255: 0] init_descriptor;
+wire    [ 31: 0] next_desc;
+wire             owned_by_hw;
+wire    [255: 0] pollen_clear_run_desc;
+reg     [  3: 0] posted_desc_counter;
+reg              posted_read_queued;
+wire    [ 31: 0] read_address;
+wire    [  7: 0] read_burst;
+wire             read_fixed_address;
+reg     [  3: 0] received_desc_counter;
+reg              run_rising_edge;
+wire             run_rising_edge_in;
+reg              started;
+wire             started_in;
+wire    [ 31: 0] write_address;
+wire    [  7: 0] write_burst;
+wire             write_fixed_address;
   //descriptor_read, which is an e_avalon_master
   //Control assignments
   assign command_fifo_wrreq_in = chain_run && fifos_not_full && delayed_desc_reg_en && owned_by_hw;
@@ -864,20 +867,21 @@ module descriptor_write_which_resides_within_nios_system_sgdma_rx (
   input            status_token_fifo_empty;
   input   [ 23: 0] status_token_fifo_q;
 
-  wire             atlantic_error;
-  wire             can_write;
-  wire             controlbitsfifo_rdreq;
-  wire             desc_address_fifo_rdreq;
-  reg     [ 31: 0] descriptor_write_address;
-  wire             descriptor_write_busy;
-  reg              descriptor_write_write;
-  reg              descriptor_write_write0;
-  reg     [ 31: 0] descriptor_write_writedata;
-  wire             fifos_not_empty;
-  wire    [  7: 0] status_reg;
-  reg              status_token_fifo_rdreq;
-  wire             status_token_fifo_rdreq_in;
-  wire             t_eop;
+
+wire             atlantic_error;
+wire             can_write;
+wire             controlbitsfifo_rdreq;
+wire             desc_address_fifo_rdreq;
+reg     [ 31: 0] descriptor_write_address;
+wire             descriptor_write_busy;
+reg              descriptor_write_write;
+reg              descriptor_write_write0;
+reg     [ 31: 0] descriptor_write_writedata;
+wire             fifos_not_empty;
+wire    [  7: 0] status_reg;
+reg              status_token_fifo_rdreq;
+wire             status_token_fifo_rdreq_in;
+wire             t_eop;
   //descriptor_write, which is an e_avalon_master
   always @(posedge clk or negedge reset_n)
     begin
@@ -1025,38 +1029,39 @@ module nios_system_sgdma_rx_chain (
   input   [ 23: 0] status_token_fifo_q;
   input            write_go;
 
-  wire    [  3: 0] atlantic_channel;
-  wire             atlantic_error;
-  wire             chain_run;
-  wire    [103: 0] command_fifo_data;
-  wire             command_fifo_wrreq;
-  wire    [  7: 0] control;
-  wire    [  6: 0] controlbitsfifo_q;
-  wire             controlbitsfifo_rdreq;
-  wire             csr_irq;
-  wire    [ 31: 0] csr_readdata;
-  wire    [ 31: 0] desc_address_fifo_data;
-  wire             desc_address_fifo_rdreq;
-  wire             desc_address_fifo_wrreq;
-  wire    [ 31: 0] descriptor_pointer_lower_reg_out;
-  wire    [ 31: 0] descriptor_pointer_upper_reg_out;
-  wire    [ 31: 0] descriptor_read_address;
-  wire             descriptor_read_read;
-  wire    [ 31: 0] descriptor_write_address;
-  wire             descriptor_write_busy;
-  wire             descriptor_write_write;
-  wire    [ 31: 0] descriptor_write_writedata;
-  wire             generate_eop;
-  wire    [ 31: 0] next_desc;
-  wire             owned_by_hw;
-  wire             park;
-  wire             pollen_clear_run;
-  wire             read_fixed_address;
-  wire             run;
-  wire             status_token_fifo_rdreq;
-  wire             sw_reset;
-  wire             t_eop;
-  wire             write_fixed_address;
+
+wire    [  3: 0] atlantic_channel;
+wire             atlantic_error;
+wire             chain_run;
+wire    [103: 0] command_fifo_data;
+wire             command_fifo_wrreq;
+wire    [  7: 0] control;
+wire    [  6: 0] controlbitsfifo_q;
+wire             controlbitsfifo_rdreq;
+wire             csr_irq;
+wire    [ 31: 0] csr_readdata;
+wire    [ 31: 0] desc_address_fifo_data;
+wire             desc_address_fifo_rdreq;
+wire             desc_address_fifo_wrreq;
+wire    [ 31: 0] descriptor_pointer_lower_reg_out;
+wire    [ 31: 0] descriptor_pointer_upper_reg_out;
+wire    [ 31: 0] descriptor_read_address;
+wire             descriptor_read_read;
+wire    [ 31: 0] descriptor_write_address;
+wire             descriptor_write_busy;
+wire             descriptor_write_write;
+wire    [ 31: 0] descriptor_write_writedata;
+wire             generate_eop;
+wire    [ 31: 0] next_desc;
+wire             owned_by_hw;
+wire             park;
+wire             pollen_clear_run;
+wire             read_fixed_address;
+wire             run;
+wire             status_token_fifo_rdreq;
+wire             sw_reset;
+wire             t_eop;
+wire             write_fixed_address;
   control_status_slave_which_resides_within_nios_system_sgdma_rx the_control_status_slave_which_resides_within_nios_system_sgdma_rx
     (
       .atlantic_error                   (atlantic_error),
@@ -1184,23 +1189,24 @@ module nios_system_sgdma_rx_command_grabber (
   input            reset_n;
   input            write_go;
 
-  wire    [  3: 0] atlantic_channel;
-  wire    [ 15: 0] bytes_to_transfer;
-  wire             command_fifo_rdreq;
-  wire             command_fifo_rdreq_in;
-  reg              command_fifo_rdreq_reg;
-  reg              command_valid;
-  wire    [  7: 0] control;
-  reg              delay1_command_valid;
-  wire             generate_eop;
-  wire    [ 31: 0] read_address;
-  wire    [  7: 0] read_burst;
-  wire             read_fixed_address;
-  wire    [ 31: 0] write_address;
-  wire    [  7: 0] write_burst;
-  reg     [ 56: 0] write_command_data;
-  wire             write_command_valid;
-  wire             write_fixed_address;
+
+wire    [  3: 0] atlantic_channel;
+wire    [ 15: 0] bytes_to_transfer;
+wire             command_fifo_rdreq;
+wire             command_fifo_rdreq_in;
+reg              command_fifo_rdreq_reg;
+reg              command_valid;
+wire    [  7: 0] control;
+reg              delay1_command_valid;
+wire             generate_eop;
+wire    [ 31: 0] read_address;
+wire    [  7: 0] read_burst;
+wire             read_fixed_address;
+wire    [ 31: 0] write_address;
+wire    [  7: 0] write_burst;
+reg     [ 56: 0] write_command_data;
+wire             write_command_valid;
+wire             write_fixed_address;
   //Descriptor components
   assign read_address = command_fifo_q[31 : 0];
   assign write_address = command_fifo_q[63 : 32];
@@ -1288,8 +1294,9 @@ module sixteen_bit_byteenable_FSM_which_resides_within_nios_system_sgdma_rx (
   input            waitrequest_in;
   input            write_in;
 
-  wire    [  1: 0] byteenable_out;
-  wire             waitrequest_out;
+
+wire    [  1: 0] byteenable_out;
+wire             waitrequest_out;
   assign byteenable_out = byteenable_in & {2{write_in}};
   assign waitrequest_out = waitrequest_in | ((write_in == 1) & (waitrequest_in == 1));
 
@@ -1326,21 +1333,22 @@ module thirty_two_bit_byteenable_FSM_which_resides_within_nios_system_sgdma_rx (
   input            waitrequest_in;
   input            write_in;
 
-  wire             advance_to_next_state;
-  wire    [  3: 0] byteenable_out;
-  wire             full_lower_half_transfer;
-  wire             full_upper_half_transfer;
-  wire             full_word_transfer;
-  wire             lower_enable;
-  wire             lower_stall;
-  wire             partial_lower_half_transfer;
-  wire             partial_upper_half_transfer;
-  reg              state_bit;
-  wire             transfer_done;
-  wire             two_stage_transfer;
-  wire             upper_enable;
-  wire             upper_stall;
-  wire             waitrequest_out;
+
+wire             advance_to_next_state;
+wire    [  3: 0] byteenable_out;
+wire             full_lower_half_transfer;
+wire             full_upper_half_transfer;
+wire             full_word_transfer;
+wire             lower_enable;
+wire             lower_stall;
+wire             partial_lower_half_transfer;
+wire             partial_upper_half_transfer;
+reg              state_bit;
+wire             transfer_done;
+wire             two_stage_transfer;
+wire             upper_enable;
+wire             upper_stall;
+wire             waitrequest_out;
   assign partial_lower_half_transfer = byteenable_in[1 : 0] != 0;
   assign full_lower_half_transfer = byteenable_in[1 : 0] == {2 {1'b1}};
   assign partial_upper_half_transfer = byteenable_in[3 : 2] != 0;
@@ -1430,8 +1438,9 @@ module byteenable_gen_which_resides_within_nios_system_sgdma_rx (
   input            waitrequest_in;
   input            write_in;
 
-  wire    [  3: 0] byteenable_out;
-  wire             waitrequest_out;
+
+wire    [  3: 0] byteenable_out;
+wire             waitrequest_out;
   //the_thirty_two_bit_byteenable_FSM, which is an e_instance
   thirty_two_bit_byteenable_FSM_which_resides_within_nios_system_sgdma_rx the_thirty_two_bit_byteenable_FSM
     (
@@ -1508,62 +1517,63 @@ module nios_system_sgdma_rx_m_write (
   input   [ 56: 0] write_command_data;
   input            write_command_valid;
 
-  wire    [ 15: 0] actual_bytes_transferred;
-  wire    [  3: 0] all_one;
-  reg     [  3: 0] burst_counter;
-  wire             burst_counter_decrement;
-  wire    [  3: 0] burst_counter_next;
-  reg     [  3: 0] burst_counter_reg;
-  wire    [  3: 0] burst_size;
-  reg              byteenable_enable;
-  wire    [ 15: 0] bytes_to_transfer;
-  reg     [ 15: 0] counter;
-  wire    [ 15: 0] counter_in;
-  reg              delayed_write_command_valid;
-  reg              delayed_write_go;
-  wire             e_00;
-  wire             e_01;
-  wire             e_02;
-  wire             e_03;
-  wire             e_04;
-  wire             e_05;
-  wire             e_06;
-  reg              eop_found_hold;
-  reg              eop_reg;
-  wire             increment;
-  wire             increment_address;
-  reg     [ 31: 0] m_write_address;
-  wire    [  3: 0] m_write_byteenable;
-  wire    [  3: 0] m_write_byteenable_in;
-  reg     [  3: 0] m_write_byteenable_reg;
-  wire             m_write_waitrequest_out;
-  reg              m_write_write;
-  reg              m_write_write_sig;
-  wire    [ 31: 0] m_write_writedata;
-  reg     [ 31: 0] m_write_writedata_reg;
-  wire             m_writefifo_fill;
-  wire    [  3: 0] shift0;
-  wire    [  3: 0] shift1;
-  wire    [  3: 0] shift2;
-  wire    [  3: 0] shift3;
-  wire             single_transfer;
-  wire    [  3: 0] sink_stream_empty_shift;
-  wire             sink_stream_ready;
-  wire             sink_stream_really_valid;
-  wire    [ 31: 0] start_address;
-  reg     [  7: 0] status_reg;
-  wire    [  7: 0] status_reg_in;
-  wire    [ 23: 0] status_token_fifo_data;
-  wire             status_token_fifo_wrreq;
-  wire    [  7: 0] status_word;
-  wire             t_eop;
-  reg     [ 56: 0] write_command_data_reg;
-  wire             write_go;
-  reg              write_go_fall_reg;
-  wire             write_go_fall_reg_in;
-  reg              write_go_reg;
-  wire             write_go_reg_in;
-  wire             write_go_reg_in_teop;
+
+wire    [ 15: 0] actual_bytes_transferred;
+wire    [  3: 0] all_one;
+reg     [  3: 0] burst_counter;
+wire             burst_counter_decrement;
+wire    [  3: 0] burst_counter_next;
+reg     [  3: 0] burst_counter_reg;
+wire    [  3: 0] burst_size;
+reg              byteenable_enable;
+wire    [ 15: 0] bytes_to_transfer;
+reg     [ 15: 0] counter;
+wire    [ 15: 0] counter_in;
+reg              delayed_write_command_valid;
+reg              delayed_write_go;
+wire             e_00;
+wire             e_01;
+wire             e_02;
+wire             e_03;
+wire             e_04;
+wire             e_05;
+wire             e_06;
+reg              eop_found_hold;
+reg              eop_reg;
+wire             increment;
+wire             increment_address;
+reg     [ 31: 0] m_write_address;
+wire    [  3: 0] m_write_byteenable;
+wire    [  3: 0] m_write_byteenable_in;
+reg     [  3: 0] m_write_byteenable_reg;
+wire             m_write_waitrequest_out;
+reg              m_write_write;
+reg              m_write_write_sig;
+wire    [ 31: 0] m_write_writedata;
+reg     [ 31: 0] m_write_writedata_reg;
+wire             m_writefifo_fill;
+wire    [  3: 0] shift0;
+wire    [  3: 0] shift1;
+wire    [  3: 0] shift2;
+wire    [  3: 0] shift3;
+wire             single_transfer;
+wire    [  3: 0] sink_stream_empty_shift;
+wire             sink_stream_ready;
+wire             sink_stream_really_valid;
+wire    [ 31: 0] start_address;
+reg     [  7: 0] status_reg;
+wire    [  7: 0] status_reg_in;
+wire    [ 23: 0] status_token_fifo_data;
+wire             status_token_fifo_wrreq;
+wire    [  7: 0] status_word;
+wire             t_eop;
+reg     [ 56: 0] write_command_data_reg;
+wire             write_go;
+reg              write_go_fall_reg;
+wire             write_go_fall_reg_in;
+reg              write_go_reg;
+wire             write_go_reg_in;
+wire             write_go_reg_in_teop;
   //m_write, which is an e_avalon_master
   assign burst_size = 1;
   always @(posedge clk or negedge reset_n)
@@ -1822,9 +1832,10 @@ module nios_system_sgdma_rx_command_fifo (
   input            command_fifo_wrreq;
   input            reset;
 
-  wire             command_fifo_empty;
-  wire             command_fifo_full;
-  wire    [103: 0] command_fifo_q;
+
+wire             command_fifo_empty;
+wire             command_fifo_full;
+wire    [103: 0] command_fifo_q;
   scfifo nios_system_sgdma_rx_command_fifo_command_fifo
     (
       .aclr (reset),
@@ -1838,7 +1849,7 @@ module nios_system_sgdma_rx_command_fifo (
     );
 
   defparam nios_system_sgdma_rx_command_fifo_command_fifo.add_ram_output_register = "ON",
-           nios_system_sgdma_rx_command_fifo_command_fifo.intended_device_family = "CYCLONEIVGX",
+           nios_system_sgdma_rx_command_fifo_command_fifo.intended_device_family = "CYCLONE10LP",
            nios_system_sgdma_rx_command_fifo_command_fifo.lpm_numwords = 2,
            nios_system_sgdma_rx_command_fifo_command_fifo.lpm_showahead = "OFF",
            nios_system_sgdma_rx_command_fifo_command_fifo.lpm_type = "scfifo",
@@ -1884,9 +1895,10 @@ module nios_system_sgdma_rx_desc_address_fifo (
   input            desc_address_fifo_wrreq;
   input            reset;
 
-  wire             desc_address_fifo_empty;
-  wire             desc_address_fifo_full;
-  wire    [ 31: 0] desc_address_fifo_q;
+
+wire             desc_address_fifo_empty;
+wire             desc_address_fifo_full;
+wire    [ 31: 0] desc_address_fifo_q;
   scfifo nios_system_sgdma_rx_desc_address_fifo_desc_address_fifo
     (
       .aclr (reset),
@@ -1900,7 +1912,7 @@ module nios_system_sgdma_rx_desc_address_fifo (
     );
 
   defparam nios_system_sgdma_rx_desc_address_fifo_desc_address_fifo.add_ram_output_register = "ON",
-           nios_system_sgdma_rx_desc_address_fifo_desc_address_fifo.intended_device_family = "CYCLONEIVGX",
+           nios_system_sgdma_rx_desc_address_fifo_desc_address_fifo.intended_device_family = "CYCLONE10LP",
            nios_system_sgdma_rx_desc_address_fifo_desc_address_fifo.lpm_numwords = 2,
            nios_system_sgdma_rx_desc_address_fifo_desc_address_fifo.lpm_showahead = "OFF",
            nios_system_sgdma_rx_desc_address_fifo_desc_address_fifo.lpm_type = "scfifo",
@@ -1946,9 +1958,10 @@ module nios_system_sgdma_rx_status_token_fifo (
   input            status_token_fifo_rdreq;
   input            status_token_fifo_wrreq;
 
-  wire             status_token_fifo_empty;
-  wire             status_token_fifo_full;
-  wire    [ 23: 0] status_token_fifo_q;
+
+wire             status_token_fifo_empty;
+wire             status_token_fifo_full;
+wire    [ 23: 0] status_token_fifo_q;
   scfifo nios_system_sgdma_rx_status_token_fifo_status_token_fifo
     (
       .aclr (reset),
@@ -1962,7 +1975,7 @@ module nios_system_sgdma_rx_status_token_fifo (
     );
 
   defparam nios_system_sgdma_rx_status_token_fifo_status_token_fifo.add_ram_output_register = "ON",
-           nios_system_sgdma_rx_status_token_fifo_status_token_fifo.intended_device_family = "CYCLONEIVGX",
+           nios_system_sgdma_rx_status_token_fifo_status_token_fifo.intended_device_family = "CYCLONE10LP",
            nios_system_sgdma_rx_status_token_fifo_status_token_fifo.lpm_numwords = 2,
            nios_system_sgdma_rx_status_token_fifo_status_token_fifo.lpm_showahead = "OFF",
            nios_system_sgdma_rx_status_token_fifo_status_token_fifo.lpm_type = "scfifo",
@@ -2052,52 +2065,53 @@ module nios_system_sgdma_rx (
   input            m_write_waitrequest;
   input            system_reset_n;
 
-  wire    [103: 0] command_fifo_data;
-  wire             command_fifo_empty;
-  wire             command_fifo_full;
-  wire    [103: 0] command_fifo_q;
-  wire             command_fifo_rdreq;
-  wire             command_fifo_wrreq;
-  wire             csr_irq;
-  wire    [ 31: 0] csr_readdata;
-  wire    [ 31: 0] desc_address_fifo_data;
-  wire             desc_address_fifo_empty;
-  wire             desc_address_fifo_full;
-  wire    [ 31: 0] desc_address_fifo_q;
-  wire             desc_address_fifo_rdreq;
-  wire             desc_address_fifo_wrreq;
-  wire    [ 31: 0] descriptor_read_address;
-  wire             descriptor_read_read;
-  wire    [ 31: 0] descriptor_write_address;
-  wire             descriptor_write_write;
-  wire    [ 31: 0] descriptor_write_writedata;
-  wire             generate_eop;
-  wire             in_ready;
-  wire    [ 31: 0] m_write_address;
-  wire    [  3: 0] m_write_byteenable;
-  wire             m_write_write;
-  wire    [ 31: 0] m_write_writedata;
-  wire             reset;
-  reg              reset_n;
-  wire    [ 31: 0] sink_stream_data;
-  wire    [  1: 0] sink_stream_empty;
-  wire             sink_stream_endofpacket;
-  wire    [  5: 0] sink_stream_error;
-  wire             sink_stream_ready;
-  wire             sink_stream_startofpacket;
-  wire             sink_stream_valid;
-  wire    [ 23: 0] status_token_fifo_data;
-  wire             status_token_fifo_empty;
-  wire             status_token_fifo_full;
-  wire    [ 23: 0] status_token_fifo_q;
-  wire             status_token_fifo_rdreq;
-  wire             status_token_fifo_wrreq;
-  wire             sw_reset;
-  reg              sw_reset_d1;
-  reg              sw_reset_request;
-  wire    [ 56: 0] write_command_data;
-  wire             write_command_valid;
-  wire             write_go;
+
+wire    [103: 0] command_fifo_data;
+wire             command_fifo_empty;
+wire             command_fifo_full;
+wire    [103: 0] command_fifo_q;
+wire             command_fifo_rdreq;
+wire             command_fifo_wrreq;
+wire             csr_irq;
+wire    [ 31: 0] csr_readdata;
+wire    [ 31: 0] desc_address_fifo_data;
+wire             desc_address_fifo_empty;
+wire             desc_address_fifo_full;
+wire    [ 31: 0] desc_address_fifo_q;
+wire             desc_address_fifo_rdreq;
+wire             desc_address_fifo_wrreq;
+wire    [ 31: 0] descriptor_read_address;
+wire             descriptor_read_read;
+wire    [ 31: 0] descriptor_write_address;
+wire             descriptor_write_write;
+wire    [ 31: 0] descriptor_write_writedata;
+wire             generate_eop;
+wire             in_ready;
+wire    [ 31: 0] m_write_address;
+wire    [  3: 0] m_write_byteenable;
+wire             m_write_write;
+wire    [ 31: 0] m_write_writedata;
+wire             reset;
+reg              reset_n;
+wire    [ 31: 0] sink_stream_data;
+wire    [  1: 0] sink_stream_empty;
+wire             sink_stream_endofpacket;
+wire    [  5: 0] sink_stream_error;
+wire             sink_stream_ready;
+wire             sink_stream_startofpacket;
+wire             sink_stream_valid;
+wire    [ 23: 0] status_token_fifo_data;
+wire             status_token_fifo_empty;
+wire             status_token_fifo_full;
+wire    [ 23: 0] status_token_fifo_q;
+wire             status_token_fifo_rdreq;
+wire             status_token_fifo_wrreq;
+wire             sw_reset;
+reg              sw_reset_d1;
+reg              sw_reset_request;
+wire    [ 56: 0] write_command_data;
+wire             write_command_valid;
+wire             write_go;
   always @(posedge clk or negedge system_reset_n)
     begin
       if (system_reset_n == 0)

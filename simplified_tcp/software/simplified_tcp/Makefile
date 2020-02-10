@@ -129,12 +129,12 @@ BUILD_CONFIGS := default
 
 # This following VERSION comment indicates the version of the tool used to 
 # generate this makefile. A makefile variable is provided for VERSION as well. 
-# ACDS_VERSION: 15.0
-ACDS_VERSION := 15.0
+# ACDS_VERSION: 18.1
+ACDS_VERSION := 18.1
 
 # This following BUILD_NUMBER comment indicates the build number of the tool 
 # used to generate this makefile. 
-# BUILD_NUMBER: 145
+# BUILD_NUMBER: 625
 
 # Define path to the application ELF. 
 # It may be used by the makefile fragments so is defined before including them. 
@@ -142,7 +142,7 @@ ACDS_VERSION := 15.0
 ELF := simplified_tcp.elf
 
 # Paths to C, C++, and assembly source files.
-C_SRCS := tx_rx.c
+C_SRCS := main.c
 CXX_SRCS :=
 ASM_SRCS :=
 
@@ -152,7 +152,7 @@ OBJ_ROOT_DIR := obj
 
 # Options to control objdump.
 CREATE_OBJDUMP := 1
-OBJDUMP_INCLUDE_SOURCE := 1
+OBJDUMP_INCLUDE_SOURCE := 0
 OBJDUMP_FULL_CONTENTS := 0
 
 # Options to enable/disable optional files.
@@ -188,7 +188,6 @@ APP_LIBRARY_NAMES :=
 BUILD_PRE_PROCESS :=
 BUILD_POST_PROCESS :=
 
-QUARTUS_PROJECT_DIR := ../../
 
 
 #END GENERATED
@@ -846,16 +845,8 @@ help :
 	@$(ECHO) "    all (default)     - Application and all libraries (including BSP)"
 	@$(ECHO) "    bsp               - Just the BSP"
 	@$(ECHO) "    libs              - All libraries (including BSP)"
-	@$(ECHO) "    flash             - All flash files"	
+	@$(ECHO) "    flash             - All flash files"
 	@$(ECHO) "    mem_init_generate - All memory initialization files"
-ifeq ($(QSYS),1)
-	@$(ECHO) "    mem_init_install  - This target is deprecated for QSys Systems"
-	@$(ECHO) "                         --> Use the mem_init_generate target and then"
-	@$(ECHO) "                             add the generated meminit.qip file to your"
-	@$(ECHO) "                             Quartus II Project."
-else # if QSYS != 1
-	@$(ECHO) "    mem_init_install  - Copy memory initialization files to Quartus II project"
-endif # QSYS == 1
 	@$(ECHO)
 	@$(ECHO) "  Clean targets:"
 	@$(ECHO) "    clean_all         - Application and all libraries (including BSP)"
@@ -907,7 +898,7 @@ $(APP_LDDEPS): libs
 endif
 
 # Rules to force your project to rebuild or relink
-# .force_relink file will cause any application that depends on this project to relink 
+# .force_relink file will cause any application that depends on this project to relink
 # .force_rebuild file will cause this project to rebuild object files
 # .force_rebuild_all file will cause this project and any project that depends on this project to rebuild object files
 
@@ -974,9 +965,9 @@ download-elf : $(ELF)
 	else \
 		$(ECHO) Info: Downloading $(ELF); \
 		$(DOWNLOAD) --go --cpu_name=$(CPU_NAME) $(DOWNLOAD_CABLE_FLAG) $(SOPC_SYSID_FLAG) $(DOWNLOAD_JDI_FLAG) $(WRITE_GMON_OPTION) $(ELF); \
-	fi	
+	fi
 
-# Delete the target of a rule if it has changed and its commands exit 
+# Delete the target of a rule if it has changed and its commands exit
 # with a nonzero exit status.
 .DELETE_ON_ERROR:
 
@@ -1007,7 +998,8 @@ $(PROGRAM_FLASH_TARGET) : flash
 
 # Rules for simulating with an HDL Simulator [QSYS only]
 ifeq ($(QSYS),1)
-IP_MAKE_SIMSCRIPT := ip-make-simscript
+#Create a top level modelsim script load_sim.tcl to source generate msim_setup.tcl and copy mem initialization files
+CREATE_TOP_SIM_SCRIPT := alt-create-top-sim-script
 
 ifeq ($(VSIM),)
 VSIM_EXE := "$(if $(VSIM_DIR),$(VSIM_DIR)/,)vsim"
@@ -1028,10 +1020,11 @@ endif # SOPC_NAME set
 endif # ABS_QUARTUS_PROJECT_DIR set
 endif # SPD == empty string
 
-ifeq ($(MSIM_SCRIPT),)
+
+ifeq ($(LOAD_SIM_SCRIPT),)
 SIM_SCRIPT_DIR := $(RUNTIME_ROOT_DIR)/sim
-MSIM_SCRIPT := $(SIM_SCRIPT_DIR)/mentor/msim_setup.tcl
-endif # MSIM_SCRIPT == empty string
+LOAD_SIM_SCRIPT := $(SIM_SCRIPT_DIR)/mentor/load_sim.tcl
+endif # LOAD_SIM_SCRIPT == empty string
 
 ifeq ($(MAKE_VERSION),3.81)
 ABS_MEM_INIT_DESCRIPTOR_FILE := $(abspath $(MEM_INIT_DESCRIPTOR_FILE))
@@ -1039,25 +1032,27 @@ else
 ABS_MEM_INIT_DESCRIPTOR_FILE := $(call adjust-path-mixed,$(shell pwd))/$(MEM_INIT_DESCRIPTOR_FILE)
 endif
 
-$(MSIM_SCRIPT): $(SPD) $(MEM_INIT_DESCRIPTOR_FILE)
+$(LOAD_SIM_SCRIPT): $(SPD) $(MEM_INIT_DESCRIPTOR_FILE)
 ifeq ($(SPD),)
 	$(error No SPD file specified. Ensure QUARTUS_PROJECT_DIR variable is set)
 endif
 	@$(MKDIR) $(SIM_SCRIPT_DIR)
-	$(IP_MAKE_SIMSCRIPT) --spd=$(SPD) --spd=$(MEM_INIT_DESCRIPTOR_FILE) --output-directory=$(SIM_SCRIPT_DIR)
+	$(CREATE_TOP_SIM_SCRIPT) --spd=$(SPD) --mem-init-spd=$(abspath $(MEM_INIT_DESCRIPTOR_FILE)) --output-directory=$(SIM_SCRIPT_DIR)
 
 VSIM_COMMAND = \
-	cd $(dir $(MSIM_SCRIPT)) && \
-	$(VSIM) -do "do $(notdir $(MSIM_SCRIPT)); ld; $(if $(VSIM_RUN_TIME),run ${VSIM_RUN_TIME};quit;)"
+	cd $(dir $(LOAD_SIM_SCRIPT)) && \
+	$(VSIM) -do "do $(notdir $(LOAD_SIM_SCRIPT)); ld; $(if $(VSIM_RUN_TIME),run ${VSIM_RUN_TIME};quit;)"
 
 .PHONY: sim
-sim: $(MSIM_SCRIPT) mem_init_generate
-ifeq ($(MSIM_SCRIPT),)
-	$(error MSIM_SCRIPT not set)
+sim: $(LOAD_SIM_SCRIPT) mem_init_generate
+ifeq ($(LOAD_SIM_SCRIPT),)
+	$(error LOAD_SIM_SCRIPT not set)
 endif
 	$(VSIM_COMMAND)
 
 endif # QSYS == 1
+
+
 
 
 #------------------------------------------------------------------------------

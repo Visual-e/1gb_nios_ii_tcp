@@ -29,6 +29,7 @@
 ******************************************************************************/
 
 #include "altera_avalon_tse.h"
+#include "sys/alt_cache.h" 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,131 +37,127 @@
 
 void no_printf (char *fmt, ...) {}
 
-#ifdef __ALTERA_AVALON_SGDMA
-#include "altera_avalon_sgdma_regs.h"
+#ifdef __ALTERA_MSGDMA
 
 
 /** @Function Description - Perform initialization steps on transaction info structure to prepare it for .
-  *                        use by the library functionswith two SGDMAs and extra initialization Flags
+  *                        use by the library functions with two MSGDMAs and extra initialization Flags
   * @API Type:          Internal
   * @param mi           Main Device Structure.
   * @param mac_base     Base Address of the Control interface for the TSE MAC
-  * @param tx_sgdma     SGDMA device handle for TSE transmit data path 
-  * @param rx_sgdma     SGDMA device handle for TSE receive data path
+  * @param tx_msgdma     MSGDMA device handle for TSE transmit data path 
+  * @param rx_msgdma     MSGDMA device handle for TSE receive data path
   * @param cfgflags     initialization flags for the device
   * @return 0 
   */
 
 alt_32 tse_mac_initTransInfo2( tse_mac_trans_info *mi,
                                         alt_u32 mac_base,
-                                        alt_32 tx_sgdma,
-                                        alt_32 rx_sgdma,
+                                        alt_32 tx_msgdma,
+                                        alt_32 rx_msgdma,
                                         alt_32 cfgflags) {
                                               
         mi->base     = (np_tse_mac*)mac_base;
-        mi->tx_sgdma = (alt_sgdma_dev *)tx_sgdma;
-        mi->rx_sgdma = (alt_sgdma_dev *)rx_sgdma;
+        mi->tx_msgdma = (alt_msgdma_dev *)tx_msgdma;
+        mi->rx_msgdma = (alt_msgdma_dev *)rx_msgdma;
         mi->cfgflags = cfgflags;     
         return SUCCESS;
 }
 
-/** @Function Description - Synchronous SGDMA copy from buffer memory into transmit FIFO. Waits until 
+/** @Function Description - Synchronous MSGDMA copy from buffer memory into transmit FIFO. Waits until 
   *                         SGDMA has completed.  Raw function without any error checks.
   * @API Type:              Internal
   * @param mi               Main Device Structure.
-  * @param txDesc           Pointer to the transmit SGDMA descriptor
+  * @param txDesc           Pointer to the transmit MSGDMA descriptor
   * @return actual bytes transferred if ok, else error (-1)
   */
 alt_32 tse_mac_sTxWrite( tse_mac_trans_info *mi, 
-                       alt_sgdma_descriptor *txDesc)   
+                       alt_msgdma_standard_descriptor *txDesc)   
 { 
 
   alt_32 timeout;
   alt_u8 result = 0;
-  alt_u16 actualBytesTransferred;
-    
+  
   // Make sure DMA controller is not busy from a former command
   // and TX is able to accept data
   timeout = 0;
-  //tse_dprintf("\nWaiting while tx SGDMA is busy......... ");
-  while ( (IORD_ALTERA_AVALON_SGDMA_STATUS(mi->tx_sgdma->base) & 
-           ALTERA_AVALON_SGDMA_STATUS_BUSY_MSK) ) {
-           if(timeout++ == ALTERA_TSE_SGDMA_BUSY_TIME_OUT_CNT) {
-            tse_dprintf(4, "WARNING : TX SGDMA Timeout\n");
+  while ( (IORD_ALTERA_MSGDMA_CSR_STATUS(mi->tx_msgdma->csr_base) & 
+           ALTERA_MSGDMA_CSR_BUSY_MASK) ) {
+           if(timeout++ == ALTERA_TSE_MSGDMA_BUSY_TIME_OUT_CNT) {
+            tse_dprintf(4, "WARNING : TX MSGDMA Timeout\n");
             return ENP_RESOURCE;  // avoid being stuck here
            }
   }
-
-  // Set up the SGDMA
-  // Clear the status and control bits of the SGDMA descriptor
-  IOWR_ALTERA_AVALON_SGDMA_CONTROL (mi->tx_sgdma->base, 0);
-  IOWR_ALTERA_AVALON_SGDMA_STATUS (mi->tx_sgdma->base, 0xFF);
   
-  // Start SGDMA (blocking call)
-  result = alt_avalon_sgdma_do_sync_transfer(
-                mi->tx_sgdma, 
-                (alt_sgdma_descriptor *) &txDesc[0]);
+  // Start MSGDMA (blocking call)
+  alt_dcache_flush(txDesc,sizeof(alt_msgdma_standard_descriptor));
+  result = alt_msgdma_standard_descriptor_sync_transfer(
+                mi->tx_msgdma, 
+                txDesc);
   
-  if (result != 0)
+  if (result != 0) {
+    tse_dprintf(4, "WARNING :alt_msgdma_standard_descriptor_sync_transfer Error code 0x%x\n",result);
     return -1;
-  
-  /* perform cache save read to obtain actual bytes transferred for current sgdma descriptor */
-  actualBytesTransferred = IORD_ALTERA_TSE_SGDMA_DESC_ACTUAL_BYTES_TRANSFERRED(&txDesc[0]);
+  }
 
-  return actualBytesTransferred;
+  return 0;
 }
 
 
-
-
-/** @Function Description - Asynchronous SGDMA copy from rxFIFO into given buffer memory area.
+/** @Function Description - Asynchronous MSGDMA copy from rxFIFO into given buffer memory area.
   *                         Raw function without any error checks.
   *
   * @API Type:    Internal
   * @param mi     Main Device Structure.
-  * @param rxDesc Pointer to the receive SGDMA descriptor
+  * @param rxDesc Pointer to the receive MSGDMA descriptor list
   * @return 0 if ok, else error (-1)
   *
   * Note:  At the point of this function call return, 
-  *        the SGDMA asynchronous operation may not have been
+  *        the MSGDMA asynchronous operation may not have been
   *        completed yet, so the function does not return
   *        the actual bytes transferred for current descriptor
   */
 alt_32 tse_mac_aRxRead( 
   tse_mac_trans_info *mi,       
-  alt_sgdma_descriptor *rxDesc)  
+  alt_msgdma_prefetcher_standard_descriptor *rxDesc)  
 {
-  alt_32 timeout;
+  alt_u8 result;
+           
+  result = alt_msgdma_start_prefetcher_with_std_desc_list(
+                mi->rx_msgdma, 
+                rxDesc,0,0,1,1);
   
-  alt_u8 result = 0;
-         
-  // Make sure SGDMA controller is not busy from a former command
-  timeout = 0;
-//  tse_dprintf("\nWaiting while rx SGDMA is busy.........");
-  while ( (IORD_ALTERA_AVALON_SGDMA_STATUS(mi->rx_sgdma->base) & 
-           ALTERA_AVALON_SGDMA_STATUS_BUSY_MSK) ) {
-    if(timeout++ == ALTERA_TSE_SGDMA_BUSY_TIME_OUT_CNT) {
-        tse_dprintf(4, "WARNING : RX SGDMA Timeout\n");
-        return ENP_RESOURCE;  // avoid being stuck here
-    }
-  }
-
+  if (result != 0) { return -1; }
  
-  // SGDMA operation invoked for RX (non-blocking call)
-  result = alt_avalon_sgdma_do_async_transfer(
-                mi->rx_sgdma, 
-                (alt_sgdma_descriptor *) &rxDesc[0]);
+  return SUCCESS;
+}
+
+/** @Function Description - Asynchronous MSGDMA transfer from buffer to txFIFO 
+  *               
+  *
+  * @API Type:    Internal
+  * @param mi     Main Device Structure.
+  * @param rxDesc Pointer to the transmit MSGDMA descriptor list
+  * @return 0 if ok, or (-1) if error
+  *
+  */
+alt_32 tse_mac_aTxWrite( 
+  tse_mac_trans_info *mi,       
+  alt_msgdma_prefetcher_standard_descriptor *txDesc)  
+{
+  alt_u8 result;
   
-  if (result != 0)
-    return -1;
+  result = alt_msgdma_start_prefetcher_with_std_desc_list(
+                mi->tx_msgdma, 
+                txDesc,0,0,1,1);
+
+  if (result != 0) { return -1; }
  
   return SUCCESS;
 }
 
 
-
-
-#endif /* __ALTERA_AVALON_SGDMA */
+#endif /* __ALTERA_MSGDMA */
 
 /* Definition of TSE system */
 extern alt_tse_system_info tse_mac_device[MAXNETS];
@@ -187,8 +184,8 @@ alt_u8 max_mac_system = MAXNETS;
 */
 alt_32 tse_mac_SwReset(np_tse_mac *pmac) 
 {
-	alt_32 timeout;
-	alt_32 cc;
+    alt_32 timeout;
+    alt_32 cc;
         
     cc = IORD_ALTERA_TSEMAC_CMD_CONFIG(pmac);
     
@@ -254,7 +251,7 @@ alt_32 tse_mac_setGMIImode(np_tse_mac *pmac)
  */
 alt_32 alt_tse_phy_add_profile(alt_tse_phy_profile *phy)
 {
-	alt_32 i;
+    alt_32 i;
     
     /* search PHY profile for same ID */
     for(i = 0; i < phy_profile_count; i++)
@@ -285,192 +282,192 @@ alt_32 alt_tse_phy_add_profile(alt_tse_phy_profile *phy)
 /* @Function Description - Add TSE System to tse_mac_device[] array to customize TSE System
  * 
  * @API TYPE - Public
- * @param		psys_mac  pointer to alt_tse_system_mac structure describing MAC of the system
- * @param		psys_sgdma  pointer to alt_tse_system_sgdma structure describing SGDMA of the system
- * @param		psys_mem  pointer to alt_tse_system_desc_mem structure describing Descriptor Memory of the system
- * @param		psys_phy  pointer to alt_tse_system_phy structure describing PHY of the system
+ * @param        psys_mac  pointer to alt_tse_system_mac structure describing MAC of the system
+ * @param        psys_msgdma  pointer to alt_tse_system_msgdma structure describing MSGDMA of the system
+ * @param        psys_mem  pointer to alt_tse_system_desc_mem structure describing Descriptor Memory of the system
+ * @param        psys_phy  pointer to alt_tse_system_phy structure describing PHY of the system
  * @return      SUCCESS on success
- * 				ALTERA_TSE_MALLOC_FAILED if memory allocation failed
- * 				ALTERA_TSE_SYSTEM_DEF_ERROR if definition of system incorrect or pointer == NULL
+ *                 ALTERA_TSE_MALLOC_FAILED if memory allocation failed
+ *                 ALTERA_TSE_SYSTEM_DEF_ERROR if definition of system incorrect or pointer == NULL
  */
 alt_32 alt_tse_system_add_sys(
-	alt_tse_system_mac					*psys_mac,
-	alt_tse_system_sgdma				*psys_sgdma,
-	alt_tse_system_desc_mem				*psys_mem,
-	alt_tse_system_shared_fifo			*psys_shared_fifo,
-	alt_tse_system_phy 					*psys_phy ) {
+    alt_tse_system_mac                    *psys_mac,
+    alt_tse_system_msgdma                *psys_msgdma,
+    alt_tse_system_desc_mem                *psys_mem,
+    alt_tse_system_shared_fifo            *psys_shared_fifo,
+    alt_tse_system_phy                     *psys_phy ) {
 
-	int i;
-	int loop_end;
-	
-	alt_tse_system_mac					*pmac	= psys_mac;
-	alt_tse_system_sgdma				*psgdma	= psys_sgdma;
-	alt_tse_system_desc_mem				*pmem	= psys_mem;
-	alt_tse_system_shared_fifo			*pfifo	= psys_shared_fifo;
-	alt_tse_system_phy 					*pphy	= psys_phy;
-	
-	static alt_8 tse_system_count = 0;
-	
-	/* Determine number of loop */
-	/* Run at least one for non-multi-channel MAC */
-	if(pmac->tse_num_of_channel == 0) {
-		loop_end = 1;
-	}
-	else if(pmac->tse_num_of_channel > 0) {
-		loop_end = pmac->tse_num_of_channel; 
-	}
-	else {
-		tse_dprintf(2, "ERROR   : Invalid number of channel specified!\n");
-		return ALTERA_TSE_SYSTEM_DEF_ERROR;
-	}
+    int i;
+    int loop_end;
+    
+    alt_tse_system_mac                    *pmac    = psys_mac;
+    alt_tse_system_msgdma                *pmsgdma    = psys_msgdma;
+    alt_tse_system_desc_mem                *pmem    = psys_mem;
+    alt_tse_system_shared_fifo            *pfifo    = psys_shared_fifo;
+    alt_tse_system_phy                     *pphy    = psys_phy;
+    
+    static alt_8 tse_system_count = 0;
+    
+    /* Determine number of loop */
+    /* Run at least one for non-multi-channel MAC */
+    if(pmac->tse_num_of_channel == 0) {
+        loop_end = 1;
+    }
+    else if(pmac->tse_num_of_channel > 0) {
+        loop_end = pmac->tse_num_of_channel; 
+    }
+    else {
+        tse_dprintf(2, "ERROR   : Invalid number of channel specified!\n");
+        return ALTERA_TSE_SYSTEM_DEF_ERROR;
+    }
 
-	for(i = 0; i < loop_end; i++) {
-		
-		/* Make sure the boundary of array is not exceeded */
-		if(tse_system_count >= MAXNETS) {
-			tse_dprintf(2, "ERROR   : Number of TSE System added exceed the size of array!\n");
-			tse_dprintf(2, "ERROR   : Size of array = %d, Number of TSE System = %d\n", MAXNETS, tse_system_count);
-		}
+    for(i = 0; i < loop_end; i++) {
+        
+        /* Make sure the boundary of array is not exceeded */
+        if(tse_system_count >= MAXNETS) {
+            tse_dprintf(2, "ERROR   : Number of TSE System added exceed the size of array!\n");
+            tse_dprintf(2, "ERROR   : Size of array = %d, Number of TSE System = %d\n", MAXNETS, tse_system_count);
+        }
 
-		/* Add MAC info to alt_tse_system_info structure */
-		if(pmac == 0) {
-			tse_dprintf(2, "ERROR   : MAC system structure == NULL\n");
-			tse_dprintf(2, "ERROR   : Please pass in correct pointer to alt_tse_system_add_sys()\n");
-			return ALTERA_TSE_SYSTEM_DEF_ERROR;
-		}		
-		
-		tse_mac_device[tse_system_count].tse_mac_base 					= pmac->tse_mac_base + (i * 0x400);
-		tse_mac_device[tse_system_count].tse_tx_depth 					= pmac->tse_tx_depth;
-		tse_mac_device[tse_system_count].tse_rx_depth 					= pmac->tse_rx_depth;
-		tse_mac_device[tse_system_count].tse_use_mdio 					= pmac->tse_use_mdio;
-		tse_mac_device[tse_system_count].tse_en_maclite 				= pmac->tse_en_maclite;
-		tse_mac_device[tse_system_count].tse_maclite_gige 				= pmac->tse_maclite_gige;
-		tse_mac_device[tse_system_count].tse_multichannel_mac 			= pmac->tse_multichannel_mac;
-		tse_mac_device[tse_system_count].tse_num_of_channel 			= pmac->tse_num_of_channel;
-		tse_mac_device[tse_system_count].tse_mdio_shared 				= pmac->tse_mdio_shared;
-		tse_mac_device[tse_system_count].tse_number_of_mac_mdio_shared	= pmac->tse_number_of_mac_mdio_shared;
-		tse_mac_device[tse_system_count].tse_pcs_ena 					= pmac->tse_pcs_ena;
-		tse_mac_device[tse_system_count].tse_pcs_sgmii 					= pmac->tse_pcs_sgmii;
-		
-		/* Add SGDMA info to alt_tse_system_info structure */
-		if(psgdma == 0) {
-			tse_dprintf(2, "ERROR   : SGDMA system structure == NULL\n");
-			tse_dprintf(2, "ERROR   : Please pass in correct pointer to alt_tse_system_add_sys() for tse_mac_device[%d]\n", tse_system_count);
-			return ALTERA_TSE_SYSTEM_DEF_ERROR;
-		}
-		
-		tse_mac_device[tse_system_count].tse_sgdma_tx = (char *) malloc(strlen(psgdma->tse_sgdma_tx) + 1);
-	    if(!tse_mac_device[tse_system_count].tse_sgdma_tx) {
-	        tse_dprintf(1, "ERROR   : Unable to allocate memory for tse_mac_device[%d].tse_sgdma_tx\n", tse_system_count);
-	        return ALTERA_TSE_MALLOC_FAILED;
-	    }   
-		strcpy(tse_mac_device[tse_system_count].tse_sgdma_tx, psgdma->tse_sgdma_tx);
-		
-		tse_mac_device[tse_system_count].tse_sgdma_rx = (char *) malloc(strlen(psgdma->tse_sgdma_rx) + 1);
-	    if(!tse_mac_device[tse_system_count].tse_sgdma_rx) {
-	        tse_dprintf(1, "ERROR   : Unable to allocate memory for tse_mac_device[%d].tse_sgdma_rx\n", tse_system_count);
-	        return ALTERA_TSE_MALLOC_FAILED;
-	    }
-	    strcpy(tse_mac_device[tse_system_count].tse_sgdma_rx, psgdma->tse_sgdma_rx);
-	    
-		tse_mac_device[tse_system_count].tse_sgdma_rx_irq = psgdma->tse_sgdma_rx_irq;
-		
-		/* Add descriptor memory info to alt_tse_system_info structure */
-		if(pmem == 0) {
-			tse_mac_device[tse_system_count].ext_desc_mem	= TSE_INT_DESC_MEM;
-			tse_mac_device[tse_system_count].desc_mem_base	= TSE_INT_DESC_MEM;
-		}
-		else {
-			tse_mac_device[tse_system_count].ext_desc_mem	= pmem->ext_desc_mem;
-			tse_mac_device[tse_system_count].desc_mem_base	= pmem->desc_mem_base;
-		}
-		
-		/* Add shared fifo info to alt_tse_system_info structure */
-		if(pfifo == 0) {
-			tse_mac_device[tse_system_count].use_shared_fifo                = TSE_NO_SHARED_FIFO;
-			tse_mac_device[tse_system_count].tse_shared_fifo_tx_ctrl_base	= TSE_NO_SHARED_FIFO;
-			tse_mac_device[tse_system_count].tse_shared_fifo_tx_stat_base	= TSE_NO_SHARED_FIFO;
-			tse_mac_device[tse_system_count].tse_shared_fifo_tx_depth       = TSE_NO_SHARED_FIFO;
-			
-			tse_mac_device[tse_system_count].tse_shared_fifo_rx_ctrl_base	= TSE_NO_SHARED_FIFO;
-			tse_mac_device[tse_system_count].tse_shared_fifo_rx_stat_base	= TSE_NO_SHARED_FIFO;
-			tse_mac_device[tse_system_count].tse_shared_fifo_rx_depth       = TSE_NO_SHARED_FIFO;
-		}
-		else {
-			tse_mac_device[tse_system_count].use_shared_fifo                = pfifo->use_shared_fifo;
-			tse_mac_device[tse_system_count].tse_shared_fifo_tx_ctrl_base	= pfifo->tse_shared_fifo_tx_ctrl_base;
-			tse_mac_device[tse_system_count].tse_shared_fifo_tx_stat_base	= pfifo->tse_shared_fifo_tx_stat_base;
-			tse_mac_device[tse_system_count].tse_shared_fifo_tx_depth       = pfifo->tse_shared_fifo_tx_depth;
-			
-			tse_mac_device[tse_system_count].tse_shared_fifo_rx_ctrl_base	= pfifo->tse_shared_fifo_rx_ctrl_base;
-			tse_mac_device[tse_system_count].tse_shared_fifo_rx_stat_base	= pfifo->tse_shared_fifo_rx_stat_base;
-			tse_mac_device[tse_system_count].tse_shared_fifo_rx_depth       = pfifo->tse_shared_fifo_rx_depth;
-		}
-		
-		/* Add PHY info to alt_tse_system_info structure */
-		if(pphy == 0) {
-			tse_mac_device[tse_system_count].tse_phy_mdio_address	= TSE_PHY_AUTO_ADDRESS;
-			tse_mac_device[tse_system_count].tse_phy_cfg 			= 0;
-		}
-		else {
-			tse_mac_device[tse_system_count].tse_phy_mdio_address	= pphy->tse_phy_mdio_address;
-			tse_mac_device[tse_system_count].tse_phy_cfg 			= pphy->tse_phy_cfg;
-		}
-		
-		/* Point to next structure */
-		psgdma++;
-		if(pmem) pmem++;
-		if(pfifo) pfifo++;
-		if(pphy) pphy++;
-		
-		tse_system_count++;
-		max_mac_system = tse_system_count;
-	}
-	
-	return SUCCESS;
-	
+        /* Add MAC info to alt_tse_system_info structure */
+        if(pmac == 0) {
+            tse_dprintf(2, "ERROR   : MAC system structure == NULL\n");
+            tse_dprintf(2, "ERROR   : Please pass in correct pointer to alt_tse_system_add_sys()\n");
+            return ALTERA_TSE_SYSTEM_DEF_ERROR;
+        }        
+        
+        tse_mac_device[tse_system_count].tse_mac_base                     = pmac->tse_mac_base + (i * 0x400);
+        tse_mac_device[tse_system_count].tse_tx_depth                     = pmac->tse_tx_depth;
+        tse_mac_device[tse_system_count].tse_rx_depth                     = pmac->tse_rx_depth;
+        tse_mac_device[tse_system_count].tse_use_mdio                     = pmac->tse_use_mdio;
+        tse_mac_device[tse_system_count].tse_en_maclite                 = pmac->tse_en_maclite;
+        tse_mac_device[tse_system_count].tse_maclite_gige                 = pmac->tse_maclite_gige;
+        tse_mac_device[tse_system_count].tse_multichannel_mac             = pmac->tse_multichannel_mac;
+        tse_mac_device[tse_system_count].tse_num_of_channel             = pmac->tse_num_of_channel;
+        tse_mac_device[tse_system_count].tse_mdio_shared                 = pmac->tse_mdio_shared;
+        tse_mac_device[tse_system_count].tse_number_of_mac_mdio_shared    = pmac->tse_number_of_mac_mdio_shared;
+        tse_mac_device[tse_system_count].tse_pcs_ena                     = pmac->tse_pcs_ena;
+        tse_mac_device[tse_system_count].tse_pcs_sgmii                     = pmac->tse_pcs_sgmii;
+        
+        /* Add MSGDMA info to alt_tse_system_info structure */
+        if(pmsgdma == 0) {
+            tse_dprintf(2, "ERROR   : MSGDMA system structure == NULL\n");
+            tse_dprintf(2, "ERROR   : Please pass in correct pointer to alt_tse_system_add_sys() for tse_mac_device[%d]\n", tse_system_count);
+            return ALTERA_TSE_SYSTEM_DEF_ERROR;
+        }
+        
+        tse_mac_device[tse_system_count].tse_msgdma_tx = (char *) malloc(strlen(pmsgdma->tse_msgdma_tx) + 1);
+        if(!tse_mac_device[tse_system_count].tse_msgdma_tx) {
+            tse_dprintf(1, "ERROR   : Unable to allocate memory for tse_mac_device[%d].tse_msgdma_tx\n", tse_system_count);
+            return ALTERA_TSE_MALLOC_FAILED;
+        }   
+        strcpy(tse_mac_device[tse_system_count].tse_msgdma_tx, pmsgdma->tse_msgdma_tx);
+        
+        tse_mac_device[tse_system_count].tse_msgdma_rx = (char *) malloc(strlen(pmsgdma->tse_msgdma_rx) + 1);
+        if(!tse_mac_device[tse_system_count].tse_msgdma_rx) {
+            tse_dprintf(1, "ERROR   : Unable to allocate memory for tse_mac_device[%d].tse_msgdma_rx\n", tse_system_count);
+            return ALTERA_TSE_MALLOC_FAILED;
+        }
+        strcpy(tse_mac_device[tse_system_count].tse_msgdma_rx, pmsgdma->tse_msgdma_rx);
+        
+        tse_mac_device[tse_system_count].tse_msgdma_rx_irq = pmsgdma->tse_msgdma_rx_irq;
+        
+        /* Add descriptor memory info to alt_tse_system_info structure */
+        if(pmem == 0) {
+            tse_mac_device[tse_system_count].ext_desc_mem    = TSE_INT_DESC_MEM;
+            tse_mac_device[tse_system_count].desc_mem_base    = TSE_INT_DESC_MEM;
+        }
+        else {
+            tse_mac_device[tse_system_count].ext_desc_mem    = pmem->ext_desc_mem;
+            tse_mac_device[tse_system_count].desc_mem_base    = pmem->desc_mem_base;
+        }
+        
+        /* Add shared fifo info to alt_tse_system_info structure */
+        if(pfifo == 0) {
+            tse_mac_device[tse_system_count].use_shared_fifo                = TSE_NO_SHARED_FIFO;
+            tse_mac_device[tse_system_count].tse_shared_fifo_tx_ctrl_base    = TSE_NO_SHARED_FIFO;
+            tse_mac_device[tse_system_count].tse_shared_fifo_tx_stat_base    = TSE_NO_SHARED_FIFO;
+            tse_mac_device[tse_system_count].tse_shared_fifo_tx_depth       = TSE_NO_SHARED_FIFO;
+            
+            tse_mac_device[tse_system_count].tse_shared_fifo_rx_ctrl_base    = TSE_NO_SHARED_FIFO;
+            tse_mac_device[tse_system_count].tse_shared_fifo_rx_stat_base    = TSE_NO_SHARED_FIFO;
+            tse_mac_device[tse_system_count].tse_shared_fifo_rx_depth       = TSE_NO_SHARED_FIFO;
+        }
+        else {
+            tse_mac_device[tse_system_count].use_shared_fifo                = pfifo->use_shared_fifo;
+            tse_mac_device[tse_system_count].tse_shared_fifo_tx_ctrl_base    = pfifo->tse_shared_fifo_tx_ctrl_base;
+            tse_mac_device[tse_system_count].tse_shared_fifo_tx_stat_base    = pfifo->tse_shared_fifo_tx_stat_base;
+            tse_mac_device[tse_system_count].tse_shared_fifo_tx_depth       = pfifo->tse_shared_fifo_tx_depth;
+            
+            tse_mac_device[tse_system_count].tse_shared_fifo_rx_ctrl_base    = pfifo->tse_shared_fifo_rx_ctrl_base;
+            tse_mac_device[tse_system_count].tse_shared_fifo_rx_stat_base    = pfifo->tse_shared_fifo_rx_stat_base;
+            tse_mac_device[tse_system_count].tse_shared_fifo_rx_depth       = pfifo->tse_shared_fifo_rx_depth;
+        }
+        
+        /* Add PHY info to alt_tse_system_info structure */
+        if(pphy == 0) {
+            tse_mac_device[tse_system_count].tse_phy_mdio_address    = TSE_PHY_AUTO_ADDRESS;
+            tse_mac_device[tse_system_count].tse_phy_cfg             = 0;
+        }
+        else {
+            tse_mac_device[tse_system_count].tse_phy_mdio_address    = pphy->tse_phy_mdio_address;
+            tse_mac_device[tse_system_count].tse_phy_cfg             = pphy->tse_phy_cfg;
+        }
+        
+        /* Point to next structure */
+        pmsgdma++;
+        if(pmem) pmem++;
+        if(pfifo) pfifo++;
+        if(pphy) pphy++;
+        
+        tse_system_count++;
+        max_mac_system = tse_system_count;
+    }
+    
+    return SUCCESS;
+    
 }
 
 /* @Function Description - Enable MDIO sharing for multiple single channel MAC
  * 
  * @API TYPE - Public
- * @param		psys_mac_list  pointer to array of alt_tse_system_mac structure sharing MDIO block
- * @param		number_of_mac  number of MAC sharing MDIO block
+ * @param        psys_mac_list  pointer to array of alt_tse_system_mac structure sharing MDIO block
+ * @param        number_of_mac  number of MAC sharing MDIO block
  * @return      SUCCESS on success
- * 				ALTERA_TSE_SYSTEM_DEF_ERROR if definition of system incorrect or pointer == NULL
+ *                 ALTERA_TSE_SYSTEM_DEF_ERROR if definition of system incorrect or pointer == NULL
  * Multi-channel MAC not supported
  */
 alt_32 alt_tse_sys_enable_mdio_sharing(alt_tse_system_mac **psys_mac_list, alt_u8 number_of_mac) {
-	alt_32 i;
-	alt_32 j;
-	
-	alt_tse_system_mac *psys_mac;
-	
-	for(i = 0; i < number_of_mac; i++) {
-		psys_mac = psys_mac_list[i];
-		
-		if(psys_mac == 0) {
-			tse_dprintf(2, "ERROR   : MAC system structure == NULL\n");
-			tse_dprintf(2, "ERROR   : Please pass in correct pointer to alt_tse_sys_enable_mdio_sharing()\n");
-			return ALTERA_TSE_SYSTEM_DEF_ERROR;
-		}
-		
-		for(j = 0; j < max_mac_system; j++) {
-			
-			if(psys_mac->tse_mac_base == tse_mac_device[j].tse_mac_base) {
-				if(tse_mac_device[j].tse_multichannel_mac) {
-					tse_dprintf(2, "ERROR   : MDIO sharing supported by default for Multi-channel MAC\n");
-					tse_dprintf(2, "ERROR   : Do not include Multi-channel MAC in the MAC List\n");
-					return ALTERA_TSE_SYSTEM_DEF_ERROR;
-				}
-				
-				tse_mac_device[j].tse_mdio_shared = 1;
-				tse_mac_device[j].tse_number_of_mac_mdio_shared = number_of_mac;
-			}
-		}	
-	}
-	
-	return SUCCESS;
+    alt_32 i;
+    alt_32 j;
+    
+    alt_tse_system_mac *psys_mac;
+    
+    for(i = 0; i < number_of_mac; i++) {
+        psys_mac = psys_mac_list[i];
+        
+        if(psys_mac == 0) {
+            tse_dprintf(2, "ERROR   : MAC system structure == NULL\n");
+            tse_dprintf(2, "ERROR   : Please pass in correct pointer to alt_tse_sys_enable_mdio_sharing()\n");
+            return ALTERA_TSE_SYSTEM_DEF_ERROR;
+        }
+        
+        for(j = 0; j < max_mac_system; j++) {
+            
+            if(psys_mac->tse_mac_base == tse_mac_device[j].tse_mac_base) {
+                if(tse_mac_device[j].tse_multichannel_mac) {
+                    tse_dprintf(2, "ERROR   : MDIO sharing supported by default for Multi-channel MAC\n");
+                    tse_dprintf(2, "ERROR   : Do not include Multi-channel MAC in the MAC List\n");
+                    return ALTERA_TSE_SYSTEM_DEF_ERROR;
+                }
+                
+                tse_mac_device[j].tse_mdio_shared = 1;
+                tse_mac_device[j].tse_number_of_mac_mdio_shared = number_of_mac;
+            }
+        }    
+    }
+    
+    return SUCCESS;
 }
 
 /* @Function Description: Get the common speed supported by all PHYs connected to the MAC within the same group
@@ -507,7 +504,7 @@ alt_32 alt_tse_mac_set_common_speed(np_tse_mac *pmac, alt_32 common_speed) {
  * @return           Index of alt_tse_system_info structure in tse_mac_device[]
  */
 alt_32 alt_tse_get_system_index(alt_tse_system_info *psys_info) {
-	alt_32 i;
+    alt_32 i;
     
     for(i = 0; i < max_mac_system; i++) {
         if(psys_info == &tse_mac_device[i]) {
@@ -523,7 +520,7 @@ alt_32 alt_tse_get_system_index(alt_tse_system_info *psys_info) {
  * @return            Index of alt_tse_mac_group structure in pmac_groups[]
  */
 alt_32 alt_tse_get_mac_group_index(alt_tse_mac_group *pmac_group) {
-	alt_32 i;
+    alt_32 i;
     
     for(i = 0; i < mac_group_count; i++) {
         if(pmac_group == pmac_groups[i]) {
@@ -540,7 +537,7 @@ alt_32 alt_tse_get_mac_group_index(alt_tse_mac_group *pmac_group) {
  * @return            Index of alt_tse_mac_info structure in pmac_groups[]->pmac_info[]
  */
 alt_32 alt_tse_get_mac_info_index(alt_tse_mac_info *pmac_info) {
-	alt_32 i;
+    alt_32 i;
     
     for(i = 0; i < pmac_info->pmac_group->channel; i++) {
         if(pmac_info == pmac_info->pmac_group->pmac_info[i]) {
@@ -557,8 +554,8 @@ alt_32 alt_tse_get_mac_info_index(alt_tse_mac_info *pmac_info) {
  * @return            Pointer to alt_tse_mac_info structure in pmac_groups[]->pmac_info[]
  */
 alt_tse_mac_info *alt_tse_get_mac_info(np_tse_mac *pmac) {
-	alt_32 i;
-	alt_32 j;
+    alt_32 i;
+    alt_32 j;
     alt_tse_mac_group *pmac_group = 0;
     alt_tse_mac_info *pmac_info = 0;
     
@@ -591,17 +588,17 @@ alt_32 alt_tse_mac_set_speed(np_tse_mac *pmac, alt_u8 speed)
   /* 1000 Mbps */
   if(speed == TSE_PHY_SPEED_1000) {
     helpvar |= ALTERA_TSEMAC_CMD_ETH_SPEED_MSK;
-	helpvar &= ~ALTERA_TSEMAC_CMD_ENA_10_MSK;
+    helpvar &= ~ALTERA_TSEMAC_CMD_ENA_10_MSK;
   }
   /* 100 Mbps */
   else if(speed == TSE_PHY_SPEED_100) {
     helpvar &= ~ALTERA_TSEMAC_CMD_ETH_SPEED_MSK;
-	helpvar &= ~ALTERA_TSEMAC_CMD_ENA_10_MSK;
+    helpvar &= ~ALTERA_TSEMAC_CMD_ENA_10_MSK;
   }
   /* 10 Mbps */
   else if(speed == TSE_PHY_SPEED_10) {
     helpvar &= ~ALTERA_TSEMAC_CMD_ETH_SPEED_MSK;
-	helpvar |= ALTERA_TSEMAC_CMD_ENA_10_MSK;
+    helpvar |= ALTERA_TSEMAC_CMD_ENA_10_MSK;
   }  
   else {
     return ENP_PARAM;
@@ -673,16 +670,16 @@ alt_32 alt_tse_mac_set_duplex(np_tse_mac *pmac, alt_u8 duplex)
   */
 
 #define ALT_TSE_SPEED_DUPLEX(speed, duplex) ((duplex & 0x01) |\
-  	(((speed == TSE_PHY_SPEED_1000) ? 1 : 0) << 1) |   \
-	(((speed == TSE_PHY_SPEED_100) ? 1 : 0) << 2) |     \
-	(((speed == TSE_PHY_SPEED_10) ? 1 : 0) << 3) |      \
-	((speed == TSE_PHY_SPEED_INVALID) ? ALT_TSE_E_INVALID_SPEED : 0))
+      (((speed == TSE_PHY_SPEED_1000) ? 1 : 0) << 1) |   \
+    (((speed == TSE_PHY_SPEED_100) ? 1 : 0) << 2) |     \
+    (((speed == TSE_PHY_SPEED_10) ? 1 : 0) << 3) |      \
+    ((speed == TSE_PHY_SPEED_INVALID) ? ALT_TSE_E_INVALID_SPEED : 0))
   
 alt_32 getPHYSpeed(np_tse_mac *pmac) {
 
-	alt_u8 speed = ALTERA_TSE_MAC_SPEED_DEFAULT;
-	alt_u8 duplex = ALTERA_TSE_DUPLEX_MODE_DEFAULT;     /* 1 = full ; 0 = half*/
-	alt_32 result = ALT_TSE_SPEED_DUPLEX(speed, duplex);
+    alt_u8 speed = ALTERA_TSE_MAC_SPEED_DEFAULT;
+    alt_u8 duplex = ALTERA_TSE_DUPLEX_MODE_DEFAULT;     /* 1 = full ; 0 = half*/
+    alt_32 result = ALT_TSE_SPEED_DUPLEX(speed, duplex);
     
     alt_tse_phy_info *pphy = 0;
     alt_tse_mac_info *pmac_info = 0;
@@ -731,11 +728,11 @@ alt_32 getPHYSpeed(np_tse_mac *pmac) {
         result = ALT_TSE_SPEED_DUPLEX(speed, duplex) | ALT_TSE_E_NO_MDIO;
         usleep(ALTERA_NOMDIO_TIMEOUT_THRESHOLD);
         if(psys->tse_phy_cfg) {
-        	tse_dprintf(4, "WARNING : PHY[%d.%d] - MDIO not enabled! Running user configuration...\n", mac_group_index, mac_info_index);
-        	result = psys->tse_phy_cfg(pmac);
+            tse_dprintf(4, "WARNING : PHY[%d.%d] - MDIO not enabled! Running user configuration...\n", mac_group_index, mac_info_index);
+            result = psys->tse_phy_cfg(pmac);
         }
         else {
-        	tse_dprintf(4, "WARNING : MAC Group[%d] - MDIO not enabled! Speed = %s, Duplex = %s\n", mac_group_index, speed == TSE_PHY_SPEED_1000 ? "1000" :
+            tse_dprintf(4, "WARNING : MAC Group[%d] - MDIO not enabled! Speed = %s, Duplex = %s\n", mac_group_index, speed == TSE_PHY_SPEED_1000 ? "1000" :
                                                                                  speed == TSE_PHY_SPEED_100 ? "100" :
                                                                                  speed == TSE_PHY_SPEED_10 ? "10" : "Unknown",
                                                                                  duplex == 1 ? "Full" : "Half");
@@ -745,9 +742,9 @@ alt_32 getPHYSpeed(np_tse_mac *pmac) {
 
     /* Not running simulation */
     #ifndef ALT_SIM_OPTIMIZE
-	
-		/* These variables declaration are here to avoid "warning: unused variable" message when compile for simulation */
-		np_tse_mac *pmac_group_base = (np_tse_mac *) pmac_group->pmac_info[0]->psys_info->tse_mac_base;
+    
+        /* These variables declaration are here to avoid "warning: unused variable" message when compile for simulation */
+        np_tse_mac *pmac_group_base = (np_tse_mac *) pmac_group->pmac_info[0]->psys_info->tse_mac_base;
     
         /* if no PHY connected to the MAC */
         if(pphy == 0) {
@@ -761,28 +758,28 @@ alt_32 getPHYSpeed(np_tse_mac *pmac) {
             return result;
         }
 
-		/* Small MAC */
-		if(pmac_info->mac_type == ALTERA_TSE_MACLITE_10_100) {
-			alt_tse_phy_set_adv_1000(pphy, 0);
-			alt_tse_phy_restart_an(pphy, ALTERA_AUTONEG_TIMEOUT_THRESHOLD);
-		}
-		else if(pmac_info->mac_type == ALTERA_TSE_MACLITE_1000) {
-			alt_tse_phy_set_adv_100(pphy, 0);
-			alt_tse_phy_set_adv_10(pphy, 0);
-			alt_tse_phy_restart_an(pphy, ALTERA_AUTONEG_TIMEOUT_THRESHOLD);
-		}
-		
-		/* check link connection for this PHY */
-		if(alt_tse_phy_check_link(pphy, ALTERA_AUTONEG_TIMEOUT_THRESHOLD) == TSE_PHY_AN_NOT_COMPLETE) {
-			speed = ALTERA_TSE_MAC_SPEED_DEFAULT;
-			duplex = ALTERA_TSE_DUPLEX_MODE_DEFAULT;
-			result = ALT_TSE_SPEED_DUPLEX(speed, duplex) | ALT_TSE_E_AN_NOT_COMPLETE;
-			tse_dprintf(3, "WARNING : PHY[%d.%d] - Auto-Negotiation not completed! Speed = %s, Duplex = %s\n", mac_group_index, mac_info_index, speed == TSE_PHY_SPEED_1000 ? "1000" :
-																			 speed == TSE_PHY_SPEED_100 ? "100" :
-																			 speed == TSE_PHY_SPEED_10 ? "10" : "Unknown",
-																			 duplex == 1 ? "Full" : "Half");
-			return result;
-		}
+        /* Small MAC */
+        if(pmac_info->mac_type == ALTERA_TSE_MACLITE_10_100) {
+            alt_tse_phy_set_adv_1000(pphy, 0);
+            alt_tse_phy_restart_an(pphy, ALTERA_AUTONEG_TIMEOUT_THRESHOLD);
+        }
+        else if(pmac_info->mac_type == ALTERA_TSE_MACLITE_1000) {
+            alt_tse_phy_set_adv_100(pphy, 0);
+            alt_tse_phy_set_adv_10(pphy, 0);
+            alt_tse_phy_restart_an(pphy, ALTERA_AUTONEG_TIMEOUT_THRESHOLD);
+        }
+        
+        /* check link connection for this PHY */
+        if(alt_tse_phy_check_link(pphy, ALTERA_AUTONEG_TIMEOUT_THRESHOLD) == TSE_PHY_AN_NOT_COMPLETE) {
+            speed = ALTERA_TSE_MAC_SPEED_DEFAULT;
+            duplex = ALTERA_TSE_DUPLEX_MODE_DEFAULT;
+            result = ALT_TSE_SPEED_DUPLEX(speed, duplex) | ALT_TSE_E_AN_NOT_COMPLETE;
+            tse_dprintf(3, "WARNING : PHY[%d.%d] - Auto-Negotiation not completed! Speed = %s, Duplex = %s\n", mac_group_index, mac_info_index, speed == TSE_PHY_SPEED_1000 ? "1000" :
+                                                                             speed == TSE_PHY_SPEED_100 ? "100" :
+                                                                             speed == TSE_PHY_SPEED_10 ? "10" : "Unknown",
+                                                                             duplex == 1 ? "Full" : "Half");
+            return result;
+        }
 
         IOWR(&pmac_group_base->MDIO_ADDR1, 0, pphy->mdio_address);
 
@@ -790,7 +787,7 @@ alt_32 getPHYSpeed(np_tse_mac *pmac) {
         #if ENABLE_PHY_LOOPBACK
             tse_dprintf(5, "INFO    : PHY[%d.%d] - Putting PHY in loopback\n", mac_group_index, mac_info_index);
             alt_tse_phy_wr_mdio_reg(pphy, TSE_PHY_MDIO_CONTROL, TSE_PHY_MDIO_CONTROL_LOOPBACK, 1, 1);   // enable PHY loopback
-		#else
+        #else
             alt_tse_phy_wr_mdio_reg(pphy, TSE_PHY_MDIO_CONTROL, TSE_PHY_MDIO_CONTROL_LOOPBACK, 1, 0);   // disable PHY loopback
         #endif
        
@@ -799,40 +796,40 @@ alt_32 getPHYSpeed(np_tse_mac *pmac) {
             tse_dprintf(3, "WARNING : PHY[%d.%d] - PHY not found in PHY profile\n", mac_group_index, mac_info_index);
             speed = ALTERA_TSE_MAC_SPEED_DEFAULT;
             duplex = ALTERA_TSE_DUPLEX_MODE_DEFAULT;
-			result = ALT_TSE_SPEED_DUPLEX(speed, duplex) | ALT_TSE_E_NO_PHY_PROFILE;
+            result = ALT_TSE_SPEED_DUPLEX(speed, duplex) | ALT_TSE_E_NO_PHY_PROFILE;
         }
         // retrieve duplex information from PHY
-		else
-		{
-			if(pphy->pphy_profile->link_status_read)
-			{
-				result = pphy->pphy_profile->link_status_read(pmac_group_base);
-				speed = (result & 0x02) ? TSE_PHY_SPEED_1000 :
-				        (result & 0x04) ? TSE_PHY_SPEED_100  :
-						(result & 0x08) ? TSE_PHY_SPEED_10  : TSE_PHY_SPEED_INVALID;
-				duplex = (result & 0x01) ? TSE_PHY_DUPLEX_FULL : TSE_PHY_DUPLEX_HALF;
-				
-				if(result & ALT_TSE_E_INVALID_SPEED)
-				{
-					tse_dprintf(3, "WARNING : PHY[%d.%d] - Invalid speed read from PHY\n", mac_group_index, mac_info_index);
-				}
-			}
-			else if(pphy->pphy_profile->status_reg_location == 0)
-	        {
-	            tse_dprintf(3, "WARNING : PHY[%d.%d] - PHY Specific Status register information not provided in profile\n", mac_group_index, mac_info_index);
-	            speed = ALTERA_TSE_MAC_SPEED_DEFAULT;
-	            duplex = ALTERA_TSE_DUPLEX_MODE_DEFAULT;
-				result = ALT_TSE_SPEED_DUPLEX(speed, duplex) | ALT_TSE_E_PROFILE_INCORRECT_DEFINED;
-	        }
-	        else
-	        {
-	            /* extract connection speed and duplex information */
-	        	speed = alt_tse_phy_rd_mdio_reg(pphy, pphy->pphy_profile->status_reg_location, pphy->pphy_profile->speed_lsb_location, 2);
-	            duplex = alt_tse_phy_rd_mdio_reg(pphy, pphy->pphy_profile->status_reg_location, pphy->pphy_profile->duplex_bit_location, 1);
-				
-				result = ALT_TSE_SPEED_DUPLEX(speed, duplex);
-	        }
-		}
+        else
+        {
+            if(pphy->pphy_profile->link_status_read)
+            {
+                result = pphy->pphy_profile->link_status_read(pmac_group_base);
+                speed = (result & 0x02) ? TSE_PHY_SPEED_1000 :
+                        (result & 0x04) ? TSE_PHY_SPEED_100  :
+                        (result & 0x08) ? TSE_PHY_SPEED_10  : TSE_PHY_SPEED_INVALID;
+                duplex = (result & 0x01) ? TSE_PHY_DUPLEX_FULL : TSE_PHY_DUPLEX_HALF;
+                
+                if(result & ALT_TSE_E_INVALID_SPEED)
+                {
+                    tse_dprintf(3, "WARNING : PHY[%d.%d] - Invalid speed read from PHY\n", mac_group_index, mac_info_index);
+                }
+            }
+            else if(pphy->pphy_profile->status_reg_location == 0)
+            {
+                tse_dprintf(3, "WARNING : PHY[%d.%d] - PHY Specific Status register information not provided in profile\n", mac_group_index, mac_info_index);
+                speed = ALTERA_TSE_MAC_SPEED_DEFAULT;
+                duplex = ALTERA_TSE_DUPLEX_MODE_DEFAULT;
+                result = ALT_TSE_SPEED_DUPLEX(speed, duplex) | ALT_TSE_E_PROFILE_INCORRECT_DEFINED;
+            }
+            else
+            {
+                /* extract connection speed and duplex information */
+                speed = alt_tse_phy_rd_mdio_reg(pphy, pphy->pphy_profile->status_reg_location, pphy->pphy_profile->speed_lsb_location, 2);
+                duplex = alt_tse_phy_rd_mdio_reg(pphy, pphy->pphy_profile->status_reg_location, pphy->pphy_profile->duplex_bit_location, 1);
+                
+                result = ALT_TSE_SPEED_DUPLEX(speed, duplex);
+            }
+        }
 
     #else
         /* for simulation purpose, default to gigabit mode */
@@ -1030,8 +1027,24 @@ alt_32 alt_tse_phy_add_profile_default() {
                            0,                              /* Location of Speed Status    (ignored)                      */
                            0,                              /* Location of Duplex Status   (ignored)                      */
                            0,                              /* Location of Link Status     (ignored)                      */
-						   0,                              /* No function pointer configure National DP83848C            */
-						   &DP83848C_link_status_read      /* Function pointer to read from PHY specific status register */           
+                           0,                              /* No function pointer configure National DP83848C            */
+                           &DP83848C_link_status_read      /* Function pointer to read from PHY specific status register */           
+                          };
+
+    /* -------------------------------------- */
+    /* Intel PHY on C10LP EVA board  */
+    /* -------------------------------------- */ 
+                      
+    alt_tse_phy_profile PEF7071 = {"Intel PEF7071",       /* National DP83848C                                          */
+                           PEF7071_OUI,                   /* OUI                                                        */
+                           PEF7071_MODEL,                 /* Vender Model Number                                        */
+                           PEF7071_REV,                   /* Model Revision Number                                      */
+                           0,                             /* Location of Status Register                                */
+                           0,                             /* Location of Speed Status                                   */
+                           0,                             /* Location of Duplex Status                                  */
+                           0,                             /* Location of Link Status                                    */
+                           &PEF7071_config,               /* configure PEF7071                                          */
+                           &PEF7071_link_status_read      /* Function pointer to read from PHY specific status register */           
                           };
                       
     /* add supported PHY to profile */                          
@@ -1039,6 +1052,7 @@ alt_32 alt_tse_phy_add_profile_default() {
     alt_tse_phy_add_profile(&MV88E1145);
     alt_tse_phy_add_profile(&DP83865);
     alt_tse_phy_add_profile(&DP83848C);
+    alt_tse_phy_add_profile(&PEF7071);
     
     
     return phy_profile_count;
@@ -1051,7 +1065,7 @@ alt_32 alt_tse_phy_add_profile_default() {
  */
 alt_32 alt_tse_phy_print_profile() {
    
-	alt_8 i;
+    alt_8 i;
     /* display PHY in profile */
     tse_dprintf(6, "List of PHY profiles supported (Total profiles = %d)...\n", phy_profile_count);
     
@@ -1087,8 +1101,8 @@ alt_32 alt_tse_phy_print_profile() {
  */
 alt_32 alt_tse_mac_group_init() {
     
-	alt_8 i;
-	alt_8 j;
+    alt_8 i;
+    alt_8 j;
     
     alt_tse_mac_group *pmac_group = 0;
     alt_tse_mac_info *pmac_info = 0;
@@ -1101,7 +1115,7 @@ alt_32 alt_tse_mac_group_init() {
     for(i = 0; i < max_mac_system; i++) {
         psys = &tse_mac_device[i];
 
-        if((psys->tse_sgdma_tx != 0) && (psys->tse_sgdma_rx != 0)) {    	
+        if((psys->tse_msgdma_tx != 0) && (psys->tse_msgdma_rx != 0)) {        
             tse_dprintf(5, "INFO    : TSE MAC %d found at address 0x%08x\n", mac_group_count, (int) psys->tse_mac_base);
             
             /* Allocate memory for the structure */
@@ -1116,7 +1130,7 @@ alt_32 alt_tse_mac_group_init() {
                 pmac_group->channel = psys->tse_num_of_channel;
                 tse_dprintf(6, "INFO    : Multi Channel            = Yes\n");
                 tse_dprintf(6, "INFO    : Number of channel        = %d\n", pmac_group->channel);
-            	tse_dprintf(6, "INFO    : MDIO Shared              = Yes\n");
+                tse_dprintf(6, "INFO    : MDIO Shared              = Yes\n");
             }
             else if(psys->tse_mdio_shared) {
                 pmac_group->channel = psys->tse_number_of_mac_mdio_shared;
@@ -1145,7 +1159,7 @@ alt_32 alt_tse_mac_group_init() {
                 pmac_info->psys_info = &tse_mac_device[i + j];
                 
                 /* check to make sure the alt_tse_system_info defined correctly or has been defined */
-                if((pmac_info->psys_info->tse_sgdma_tx == 0) || (pmac_info->psys_info->tse_sgdma_rx == 0)){                	
+                if((pmac_info->psys_info->tse_msgdma_tx == 0) || (pmac_info->psys_info->tse_msgdma_rx == 0)){                    
                     tse_dprintf(2, "ERROR   : tse_mac_device[%d] does not defined correctly!\n", i + j);
                     return ALTERA_TSE_SYSTEM_DEF_ERROR;
                 }
@@ -1164,10 +1178,10 @@ alt_32 alt_tse_mac_group_init() {
                 }
                 
                 if((pmac_info->psys_info->tse_mdio_shared) && (!pmac_info->psys_info->tse_multichannel_mac)){
-                	tse_dprintf(6, "INFO    : MAC %2d Address           = 0x%08x\n", j, (int) pmac_info->psys_info->tse_mac_base);
+                    tse_dprintf(6, "INFO    : MAC %2d Address           = 0x%08x\n", j, (int) pmac_info->psys_info->tse_mac_base);
                     tse_dprintf(6, "INFO    : MAC %2d Device            = tse_mac_device[%d]\n", j, i + j);
                     
-                	switch(pmac_info->mac_type) {
+                    switch(pmac_info->mac_type) {
                         case ALTERA_TSE_MACLITE_1000:
                             tse_dprintf(6, "INFO    : MAC %2d Type              = %s\n", j, "1000 Mbps Small MAC");
                             break;
@@ -1188,37 +1202,37 @@ alt_32 alt_tse_mac_group_init() {
                     }
                 }
                 else {
-                	/* display only once for all MAC, except shared MDIO MACs */
-	                if(j == 0) {
-	                    switch(pmac_info->mac_type) {
-	                        case ALTERA_TSE_MACLITE_1000:
-	                            tse_dprintf(6, "INFO    : MAC Type                 = %s\n", "1000 Mbps Small MAC");
-	                            break;
-	                        case ALTERA_TSE_MACLITE_10_100:
-	                            tse_dprintf(6, "INFO    : MAC Type                 = %s\n", "10/100 Mbps Small MAC");
-	                            break;
-	                        case ALTERA_TSE_FULL_MAC:
-	                            tse_dprintf(6, "INFO    : MAC Type                 = %s\n", "10/100/1000 Ethernet MAC");
-	                            break;
-	                        default :
-	                            tse_dprintf(6, "INFO    : MAC Type                 = %s\n", "Unknown");
+                    /* display only once for all MAC, except shared MDIO MACs */
+                    if(j == 0) {
+                        switch(pmac_info->mac_type) {
+                            case ALTERA_TSE_MACLITE_1000:
+                                tse_dprintf(6, "INFO    : MAC Type                 = %s\n", "1000 Mbps Small MAC");
+                                break;
+                            case ALTERA_TSE_MACLITE_10_100:
+                                tse_dprintf(6, "INFO    : MAC Type                 = %s\n", "10/100 Mbps Small MAC");
+                                break;
+                            case ALTERA_TSE_FULL_MAC:
+                                tse_dprintf(6, "INFO    : MAC Type                 = %s\n", "10/100/1000 Ethernet MAC");
+                                break;
+                            default :
+                                tse_dprintf(6, "INFO    : MAC Type                 = %s\n", "Unknown");
                                     break;
-			    }
-	                    
-	                    if(pmac_info->psys_info->tse_pcs_ena) {
-	                        tse_dprintf(6, "INFO    : PCS Enable               = %s\n", pmac_info->psys_info->tse_pcs_ena ? "Yes" : "No");
-	                        tse_dprintf(6, "INFO    : PCS SGMII Enable         = %s\n", pmac_info->psys_info->tse_pcs_sgmii ? "Yes" : "No");	                        
-	                    }
-	                }
-	                
-                	if(pmac_info->psys_info->tse_multichannel_mac) {
-                		tse_dprintf(6, "INFO    : Channel %2d Address       = 0x%08x\n", j, (int) pmac_info->psys_info->tse_mac_base);
-	                    tse_dprintf(6, "INFO    : Channel %2d Device        = tse_mac_device[%d]\n", j, i + j);
-	            	}                
-	                else {
-	                    tse_dprintf(6, "INFO    : MAC Address              = 0x%08x\n", (int) pmac_info->psys_info->tse_mac_base);
-	                    tse_dprintf(6, "INFO    : MAC Device               = tse_mac_device[%d]\n", i + j);
-	                }
+                }
+                        
+                        if(pmac_info->psys_info->tse_pcs_ena) {
+                            tse_dprintf(6, "INFO    : PCS Enable               = %s\n", pmac_info->psys_info->tse_pcs_ena ? "Yes" : "No");
+                            tse_dprintf(6, "INFO    : PCS SGMII Enable         = %s\n", pmac_info->psys_info->tse_pcs_sgmii ? "Yes" : "No");                            
+                        }
+                    }
+                    
+                    if(pmac_info->psys_info->tse_multichannel_mac) {
+                        tse_dprintf(6, "INFO    : Channel %2d Address       = 0x%08x\n", j, (int) pmac_info->psys_info->tse_mac_base);
+                        tse_dprintf(6, "INFO    : Channel %2d Device        = tse_mac_device[%d]\n", j, i + j);
+                    }                
+                    else {
+                        tse_dprintf(6, "INFO    : MAC Address              = 0x%08x\n", (int) pmac_info->psys_info->tse_mac_base);
+                        tse_dprintf(6, "INFO    : MAC Device               = tse_mac_device[%d]\n", i + j);
+                    }
                 }
                 
                 /* store the pointer in MAC group variable for the detected channel */
@@ -1246,9 +1260,9 @@ alt_32 alt_tse_mac_group_init() {
  */
 alt_32 alt_tse_mac_get_phy(alt_tse_mac_group *pmac_group) {
     
-	alt_32 phyid; 
-	alt_32 phyid2 = 0;
-	alt_u8 phyadd;
+    alt_32 phyid; 
+    alt_32 phyid2 = 0;
+    alt_u8 phyadd;
     
     alt_u32 oui;
     alt_u8 model_number;
@@ -1296,7 +1310,7 @@ alt_32 alt_tse_mac_get_phy(alt_tse_mac_group *pmac_group) {
             oui = (phyid << 6) | ((phyid2 >> 10) & 0x3f);
             model_number = (phyid2 >> 4) & 0x3f;
             revision_number = phyid2 & 0x0f;
-			
+            
             /* map the PHY with PHY in profile */
             is_phy_in_profile = 0;
             for(i = 0; i < phy_profile_count; i++) {
@@ -1326,40 +1340,40 @@ alt_32 alt_tse_mac_get_phy(alt_tse_mac_group *pmac_group) {
             
             /* map the detected PHY to connected MAC */
             if(alt_tse_mac_associate_phy(pmac_group, pphy) == TSE_PHY_MAP_SUCCESS) {
-            	
-            	pmac_info = pphy->pmac_info;
-            	psys = pmac_info->psys_info;
-            	
-            	/* Disable PHY loopback to allow Auto-Negotiation completed */
-    	        alt_tse_phy_wr_mdio_reg(pphy, TSE_PHY_MDIO_CONTROL, TSE_PHY_MDIO_CONTROL_LOOPBACK, 1, 0);   // disable PHY loopback
-				
-				/* Reset auto-negotiation advertisement */
-				alt_tse_phy_set_adv_1000(pphy, 1);
-				alt_tse_phy_set_adv_100(pphy, 1);
-				alt_tse_phy_set_adv_10(pphy, 1);
-            	            	
-	            /* check link connection for this PHY */
-	            alt_tse_phy_restart_an(pphy, ALTERA_CHECKLINK_TIMEOUT_THRESHOLD);
-	            
-	            /* Perform additional setting if there is any */
-	            /* Profile specific */
-	            if(pphy->pphy_profile) {
-		            if(pphy->pphy_profile->phy_cfg) {
-		                tse_dprintf(6, "INFO    : Applying additional PHY configuration of %s\n", pphy->pphy_profile->name);
-		                pphy->pphy_profile->phy_cfg(pmac_group_base);
-		            }
-	            }
-	            
-	            /* Initialize PHY, call user's function pointer in alt_tse_system_info structure */
-	            /* Individual PHY specific */
-            	if(psys->tse_phy_cfg) {
-            		tse_dprintf(6, "INFO    : Applying additional user PHY configuration\n");
-            		psys->tse_phy_cfg(pmac_group_base);
-            	}
+                
+                pmac_info = pphy->pmac_info;
+                psys = pmac_info->psys_info;
+                
+                /* Disable PHY loopback to allow Auto-Negotiation completed */
+                alt_tse_phy_wr_mdio_reg(pphy, TSE_PHY_MDIO_CONTROL, TSE_PHY_MDIO_CONTROL_LOOPBACK, 1, 0);   // disable PHY loopback
+                
+                /* Reset auto-negotiation advertisement */
+                alt_tse_phy_set_adv_1000(pphy, 1);
+                alt_tse_phy_set_adv_100(pphy, 1);
+                alt_tse_phy_set_adv_10(pphy, 1);
+                                
+                /* check link connection for this PHY */
+                alt_tse_phy_restart_an(pphy, ALTERA_CHECKLINK_TIMEOUT_THRESHOLD);
+                
+                /* Perform additional setting if there is any */
+                /* Profile specific */
+                if(pphy->pphy_profile) {
+                    if(pphy->pphy_profile->phy_cfg) {
+                        tse_dprintf(6, "INFO    : Applying additional PHY configuration of %s\n", pphy->pphy_profile->name);
+                        pphy->pphy_profile->phy_cfg(pmac_group_base);
+                    }
+                }
+                
+                /* Initialize PHY, call user's function pointer in alt_tse_system_info structure */
+                /* Individual PHY specific */
+                if(psys->tse_phy_cfg) {
+                    tse_dprintf(6, "INFO    : Applying additional user PHY configuration\n");
+                    psys->tse_phy_cfg(pmac_group_base);
+                }
             }
             
             tse_dprintf(6, "\n");
-	            
+                
             phy_info_count++;
         }
     }
@@ -1392,10 +1406,10 @@ alt_32 alt_tse_mac_get_phy(alt_tse_mac_group *pmac_group) {
  */
 alt_32 alt_tse_mac_associate_phy(alt_tse_mac_group *pmac_group, alt_tse_phy_info *pphy) {
     
-	alt_32 i;
-	alt_32 return_value = TSE_PHY_MAP_SUCCESS;
+    alt_32 i;
+    alt_32 return_value = TSE_PHY_MAP_SUCCESS;
     
-	alt_u8 is_mapped;
+    alt_u8 is_mapped;
 
     alt_tse_system_info *psys = 0;
     alt_tse_mac_info *pmac_info = 0;
@@ -1413,9 +1427,9 @@ alt_32 alt_tse_mac_associate_phy(alt_tse_mac_group *pmac_group, alt_tse_phy_info
        
         /* map according to the PHY address in alt_tse_system_info.h */
         if(psys->tse_phy_mdio_address == pphy->mdio_address) {
-        	mac_info_index = alt_tse_get_mac_info_index(pmac_info);
-	        sys_info_index = alt_tse_get_system_index(psys);
-	        
+            mac_info_index = alt_tse_get_mac_info_index(pmac_info);
+            sys_info_index = alt_tse_get_system_index(psys);
+            
             pmac_info->pphy_info = pphy;
             pphy->pmac_info = pmac_info;
             tse_dprintf(5, "INFO    : PHY[%d.%d] - Explicitly mapped to tse_mac_device[%d]\n", mac_group_index, mac_info_index, sys_info_index);
@@ -1431,8 +1445,8 @@ alt_32 alt_tse_mac_associate_phy(alt_tse_mac_group *pmac_group, alt_tse_phy_info
             psys = pmac_info->psys_info;
             
             /* alt_tse_system_info structure definition error */
-            if((psys->tse_sgdma_tx == 0) || (psys->tse_sgdma_rx == 0)){
-            	continue;
+            if((psys->tse_msgdma_tx == 0) || (psys->tse_msgdma_rx == 0)){
+                continue;
             }
             
             if(psys->tse_phy_mdio_address == TSE_PHY_AUTO_ADDRESS) {
@@ -1451,7 +1465,7 @@ alt_32 alt_tse_mac_associate_phy(alt_tse_mac_group *pmac_group, alt_tse_phy_info
     
     /* Still cannot find any matched MAC-PHY */
     if(is_mapped == 0) {
-    	pphy->pmac_info = 0;
+        pphy->pmac_info = 0;
         tse_dprintf(2, "WARNING : PHY[%d.X] - Mapping of PHY to MAC failed! Make sure the PHY address is defined correctly in tse_mac_device[] structure, and number of PHYs connected is equivalent to number of channel\n", mac_group_index);
         return_value = TSE_PHY_MAP_ERROR;
     }
@@ -1503,8 +1517,8 @@ alt_32 alt_tse_phy_cfg_pcs(alt_tse_mac_info *pmac_info) {
  * @return      SUCCESS
  */
 alt_32 alt_tse_phy_init() {
-	alt_8 i = 0;
-	alt_8 j = 0;
+    alt_8 i = 0;
+    alt_8 j = 0;
     
     alt_tse_mac_group *pmac_group = 0;
     alt_tse_mac_info *pmac_info = 0;
@@ -1524,7 +1538,7 @@ alt_32 alt_tse_phy_init() {
         
         if(pmac_group->pmac_info[0]->psys_info->tse_use_mdio) {
             
-        	/* get connected PHYs */
+            /* get connected PHYs */
             alt_tse_mac_get_phy(pmac_group);
         }
         else {
@@ -1570,10 +1584,10 @@ alt_32 alt_tse_phy_restart_an(alt_tse_phy_info *pphy, alt_u32 timeout_threshold)
     if(!alt_tse_phy_rd_mdio_reg(pphy, TSE_PHY_MDIO_STATUS, TSE_PHY_MDIO_STATUS_AN_ABILITY, 1)) {
         tse_dprintf(3, "WARNING : PHY[%d.%d] - PHY not capable for Auto-Negotiation\n", mac_group_index, mac_info_index);
         
-		/* Restore previous MDIO address */
-		alt_tse_phy_wr_mdio_addr(pphy, mdioadd_prev);
-		
-		return TSE_PHY_AN_NOT_CAPABLE;
+        /* Restore previous MDIO address */
+        alt_tse_phy_wr_mdio_addr(pphy, mdioadd_prev);
+        
+        return TSE_PHY_AN_NOT_CAPABLE;
     }
     
     /* enable Auto-Negotiation */    
@@ -1587,12 +1601,13 @@ alt_32 alt_tse_phy_restart_an(alt_tse_phy_info *pphy, alt_u32 timeout_threshold)
     while(alt_tse_phy_rd_mdio_reg(pphy, TSE_PHY_MDIO_STATUS, TSE_PHY_MDIO_STATUS_AN_COMPLETE, 1) == 0 ){ 
         if(timeout++ > timeout_threshold) {
            tse_dprintf(4, "WARNING : PHY[%d.%d] - Auto-Negotiation FAILED\n", mac_group_index, mac_info_index);
-		   
-		   /* Restore previous MDIO address */
+           
+           /* Restore previous MDIO address */
            alt_tse_phy_wr_mdio_addr(pphy, mdioadd_prev);
            
-		   return TSE_PHY_AN_NOT_COMPLETE;
+           return TSE_PHY_AN_NOT_COMPLETE;
         }
+        usleep(1000);
     }
     tse_dprintf(5, "INFO    : PHY[%d.%d] - Auto-Negotiation PASSED\n", mac_group_index, mac_info_index);
     
@@ -1610,8 +1625,10 @@ alt_32 alt_tse_phy_restart_an(alt_tse_phy_info *pphy, alt_u32 timeout_threshold)
  * @return                      return TSE_PHY_AN_COMPLETE if success
  *                              return TSE_PHY_AN_NOT_COMPLETE if auto-negotiation not completed
  */
-alt_32 alt_tse_phy_check_link(alt_tse_phy_info *pphy, alt_u32 timeout_threshold) {
-
+alt_32 alt_tse_phy_check_link(alt_tse_phy_info *pphy, alt_u32 timeout_threshold)
+{
+    alt_32 timeout=0;
+    
     /* pointer to MAC associated and MAC group */
     alt_tse_mac_info *pmac_info = pphy->pmac_info;
     alt_tse_mac_group *pmac_group = pmac_info->pmac_group;
@@ -1633,20 +1650,25 @@ alt_32 alt_tse_phy_check_link(alt_tse_phy_info *pphy, alt_u32 timeout_threshold)
      * perform this when PHY is configured in loopback or has no link yet.
      */
     tse_dprintf(5, "INFO    : PHY[%d.%d] - Checking link...\n", mac_group_index, mac_info_index);
-    if( ((alt_tse_phy_rd_mdio_reg(pphy, TSE_PHY_MDIO_CONTROL, TSE_PHY_MDIO_CONTROL_LOOPBACK, 1)) != 0) ||
-        ((alt_tse_phy_rd_mdio_reg(pphy, TSE_PHY_MDIO_STATUS, TSE_PHY_MDIO_STATUS_AN_COMPLETE, 1)) == 0) ) {                 
-        
-        tse_dprintf(5, "INFO    : PHY[%d.%d] - Link not yet established, restart auto-negotiation...\n", mac_group_index, mac_info_index);
-        /* restart Auto-Negotiation */
-        /* if Auto-Negotiation still cannot complete, then go to next PHY */
-        if(alt_tse_phy_restart_an(pphy, timeout_threshold) == TSE_PHY_AN_NOT_COMPLETE) {
+    while( ((alt_tse_phy_rd_mdio_reg(pphy, TSE_PHY_MDIO_CONTROL, TSE_PHY_MDIO_CONTROL_LOOPBACK, 1)) != 0) ||
+        ((alt_tse_phy_rd_mdio_reg(pphy, TSE_PHY_MDIO_STATUS, TSE_PHY_MDIO_STATUS_AN_COMPLETE, 1)) == 0) )
+    {                 
+        if (timeout++ > timeout_threshold) 
+        {    
+          tse_dprintf(5, "INFO    : PHY[%d.%d] - Link not yet established, restart auto-negotiation...\n", mac_group_index, mac_info_index);
+          /* restart Auto-Negotiation */
+          /* if Auto-Negotiation still cannot complete, then go to next PHY */
+          if(alt_tse_phy_restart_an(pphy, timeout_threshold) == TSE_PHY_AN_NOT_COMPLETE)
+          {
             tse_dprintf(3, "WARNING : PHY[%d.%d] - Link could not established\n", mac_group_index, mac_info_index);
-			
-			/* Restore previous MDIO address */
-			alt_tse_phy_wr_mdio_addr(pphy, mdioadd_prev);
-	
+            
+            /* Restore previous MDIO address */
+            alt_tse_phy_wr_mdio_addr(pphy, mdioadd_prev);
+    
             return TSE_PHY_AN_NOT_COMPLETE;
-        }            
+          } 
+        }   
+        usleep(1000);        
     }
     tse_dprintf(5, "INFO    : PHY[%d.%d] - Link established\n", mac_group_index, mac_info_index);
             
@@ -1664,7 +1686,7 @@ alt_32 alt_tse_phy_check_link(alt_tse_phy_info *pphy, alt_u32 timeout_threshold)
  *              return TSE_PHY_AN_NOT_CAPABLE if the PHY not capable for AN
  */
 alt_32 alt_tse_phy_get_cap(alt_tse_phy_info *pphy) {
-	alt_32 return_value = TSE_PHY_AN_COMPLETE;
+    alt_32 return_value = TSE_PHY_AN_COMPLETE;
     
     /* pointer to MAC associated and MAC group */
     alt_tse_mac_info *pmac_info = pphy->pmac_info;
@@ -1760,7 +1782,7 @@ alt_32 alt_tse_phy_get_cap(alt_tse_phy_info *pphy) {
  * @return       return SUCCESS
  */
 alt_32 alt_tse_phy_set_adv_1000(alt_tse_phy_info *pphy, alt_u8 enable) {
-	alt_u8 cap;
+    alt_u8 cap;
     
     /* pointer to MAC associated and MAC group */
     alt_tse_mac_info *pmac_info = pphy->pmac_info;
@@ -1812,7 +1834,7 @@ alt_32 alt_tse_phy_set_adv_1000(alt_tse_phy_info *pphy, alt_u8 enable) {
  * @return       return SUCCESS
  */
 alt_32 alt_tse_phy_set_adv_100(alt_tse_phy_info *pphy, alt_u8 enable) {
-	alt_u8 cap;
+    alt_u8 cap;
     
     /* pointer to MAC associated and MAC group */
     alt_tse_mac_info *pmac_info = pphy->pmac_info;
@@ -1869,7 +1891,7 @@ alt_32 alt_tse_phy_set_adv_100(alt_tse_phy_info *pphy, alt_u8 enable) {
  * @return       return SUCCESS
  */
 alt_32 alt_tse_phy_set_adv_10(alt_tse_phy_info *pphy, alt_u8 enable) {
-	alt_u8 cap;
+    alt_u8 cap;
     
     /* pointer to MAC associated and MAC group */
     alt_tse_mac_info *pmac_info = pphy->pmac_info;
@@ -1920,14 +1942,14 @@ alt_32 alt_tse_phy_set_adv_10(alt_tse_phy_info *pphy, alt_u8 enable) {
  */
 alt_32 alt_tse_phy_get_common_speed(alt_tse_mac_group *pmac_group) {
     
-	alt_32 i;
-	alt_u8 common_1000 = 1;
-	alt_u8 common_100 = 1;
-	alt_u8 common_10 = 1;
+    alt_32 i;
+    alt_u8 common_1000 = 1;
+    alt_u8 common_100 = 1;
+    alt_u8 common_10 = 1;
     
-	alt_32 common_speed;
+    alt_32 common_speed;
     
-	alt_u8 none_an_complete = 1;
+    alt_u8 none_an_complete = 1;
     
     alt_tse_mac_info *pmac_info = 0;
     alt_tse_phy_info *pphy = 0;
@@ -2020,12 +2042,12 @@ alt_32 alt_tse_phy_get_common_speed(alt_tse_mac_group *pmac_group) {
  */
 alt_32 alt_tse_phy_set_common_speed(alt_tse_mac_group *pmac_group, alt_32 common_speed) {
     
-	alt_32 i;
+    alt_32 i;
 
-	alt_u8 speed;
-	alt_u8 duplex;
+    alt_u8 speed;
+    alt_u8 duplex;
     
-	alt_u8 gb_capable;
+    alt_u8 gb_capable;
     
     alt_tse_phy_info *pphy = 0;
     alt_tse_mac_info *pmac_info = 0;
@@ -2041,8 +2063,8 @@ alt_32 alt_tse_phy_set_common_speed(alt_tse_mac_group *pmac_group, alt_32 common
     
     if((common_speed < TSE_PHY_SPEED_10) || (common_speed > TSE_PHY_SPEED_1000)) {
         tse_dprintf(2, "ERROR   : MAC Group[%d] - Invalid common speed specified! common speed = %d\n", mac_group_index, (int)common_speed);
-		/* Restore previous MDIO address */
-		IOWR(&pmac_group_base->MDIO_ADDR1, 0, mdioadd_prev);
+        /* Restore previous MDIO address */
+        IOWR(&pmac_group_base->MDIO_ADDR1, 0, mdioadd_prev);
         return TSE_PHY_SPEED_NO_COMMON;
     }
     
@@ -2059,7 +2081,7 @@ alt_32 alt_tse_phy_set_common_speed(alt_tse_mac_group *pmac_group, alt_32 common
         }
         
         psys = pmac_info->psys_info; 
-        	
+            
         /* write PHY address to MDIO to access the i-th PHY */
         alt_tse_phy_wr_mdio_addr(pphy, pphy->mdio_address);
 
@@ -2070,8 +2092,8 @@ alt_32 alt_tse_phy_set_common_speed(alt_tse_mac_group *pmac_group, alt_32 common
         /* if PHY does not supports 1000 Mbps, and common speed is 1000 Mbps */
         if((!gb_capable) && (common_speed == TSE_PHY_SPEED_1000)) {
             tse_dprintf(2, "ERROR   : PHY[%d.%d] - PHY does not support 1000 Mbps, please specify valid common speed\n", mac_group_index, mac_info_index);
-			/* Restore previous MDIO address */
-			IOWR(&pmac_group_base->MDIO_ADDR1, 0, mdioadd_prev);
+            /* Restore previous MDIO address */
+            IOWR(&pmac_group_base->MDIO_ADDR1, 0, mdioadd_prev);
             return TSE_PHY_SPEED_NO_COMMON;
         }
         
@@ -2160,7 +2182,7 @@ alt_32 alt_tse_phy_set_common_speed(alt_tse_mac_group *pmac_group, alt_32 common
  */
 alt_32 marvell_phy_cfg(np_tse_mac *pmac) {
     
-	alt_u16 dat;
+    alt_u16 dat;
     
     /* If there is no link yet, we enable auto crossover and reset the PHY */
     if((IORD(&pmac->mdio1.STATUS, 0) & PCS_ST_an_done) == 0) {
@@ -2181,7 +2203,7 @@ alt_32 marvell_phy_cfg(np_tse_mac *pmac) {
  */
 alt_32 marvell_cfg_gmii(np_tse_mac *pmac) {
     
-	alt_u16 dat = IORD(&pmac->mdio1.reg1b, 0);
+    alt_u16 dat = IORD(&pmac->mdio1.reg1b, 0);
     dat &= 0xfff0;
 
     tse_dprintf(5, "MARVELL : Mode changed to GMII to copper mode\n");
@@ -2205,7 +2227,7 @@ alt_32 marvell_cfg_gmii(np_tse_mac *pmac) {
  */
 alt_32 marvell_cfg_sgmii(np_tse_mac *pmac) {
     
-	alt_u16 dat = IORD(&pmac->mdio1.reg1b, 0);
+    alt_u16 dat = IORD(&pmac->mdio1.reg1b, 0);
     dat &= 0xfff0;
 
     tse_dprintf(5, "MARVELL : Mode changed to SGMII without clock with SGMII Auto-Neg to copper mode\n");
@@ -2229,7 +2251,7 @@ alt_32 marvell_cfg_sgmii(np_tse_mac *pmac) {
  */
 alt_32 marvell_cfg_rgmii(np_tse_mac *pmac) {
     
-	alt_u16 dat = IORD(&pmac->mdio1.reg1b, 0);
+    alt_u16 dat = IORD(&pmac->mdio1.reg1b, 0);
     dat &= 0xfff0;
     
     tse_dprintf(5, "MARVELL : Mode changed to RGMII/Modified MII to Copper mode\n");
@@ -2254,22 +2276,60 @@ alt_32 marvell_cfg_rgmii(np_tse_mac *pmac) {
  * @param pmac  Pointer to the first TSE MAC Control Interface Base address within MAC group
  */
 alt_u32 DP83848C_link_status_read(np_tse_mac *pmac) {
-	alt_u32 link_status = 0;
-	alt_u32 reg_status = IORD(&pmac->mdio1.reg10, 0);
-	
-	/* If speed == 10 Mbps */
-	if(reg_status & 0x2) {
-		link_status |= 0x8;
-	}
-	/* Else speed = 100 Mbps */
-	else {
-		link_status |= 0x4;
-	}
-	
-	/* If duplex == Full */
-	if(reg_status & 0x4) {
-		link_status |= 0x1;
-	}
-	
-	return link_status;
+    alt_u32 link_status = 0;
+    alt_u32 reg_status = IORD(&pmac->mdio1.reg10, 0);
+    
+    /* If speed == 10 Mbps */
+    if(reg_status & 0x2) {
+        link_status |= 0x8;
+    }
+    /* Else speed = 100 Mbps */
+    else {
+        link_status |= 0x4;
+    }
+    
+    /* If duplex == Full */
+    if(reg_status & 0x4) {
+        link_status |= 0x1;
+    }
+    
+    return link_status;
+}
+
+/* @Function Description: Additional configuration for PEF7071 Phy
+ * @API Type:   Internal
+ * @param pmac  Pointer to the first TSE MAC Control Interface Base address within MAC group
+ */
+alt_32 PEF7071_config(np_tse_mac *pmac)
+{  
+    alt_u16 dat;
+        
+    dat = IORD(&pmac->mdio1.reg14, 0);
+    dat &= 0x3FFF;
+    dat |= 0x0100;
+    IOWR(&pmac->mdio1.reg14, 0, dat);
+    
+    return 0;
+    
+}
+
+/* @Function Description: Read link status from PHY specific status register of PEF7071
+ * @API Type:   Internal
+ * @param pmac  Pointer to the first TSE MAC Control Interface Base address within MAC group
+ */
+alt_u32 PEF7071_link_status_read(np_tse_mac *pmac)
+{
+    alt_u32 link_status = 0;
+    alt_u32 reg18 = IORD(&pmac->mdio1.reg18, 0);
+        
+    if ((reg18 & 0x3)==0) { link_status |= 0x8; }  /* If speed == 10 Mbps */
+    if ((reg18 & 0x3)==1) { link_status |= 0x4; }  /* Else speed = 100 Mbps */
+    if ((reg18 & 0x3)==2) { link_status |= 0x2; }  /* Else speed = 1000 Mbps */    
+        
+    /* If duplex == Full */
+    if(reg18 & 0x8) {
+        link_status |= 0x1;
+    }
+    
+    return link_status;
 }

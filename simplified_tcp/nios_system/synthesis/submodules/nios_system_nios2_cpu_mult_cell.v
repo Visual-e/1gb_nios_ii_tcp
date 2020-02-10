@@ -1,4 +1,4 @@
-//Legal Notice: (C)2016 Altera Corporation. All rights reserved.  Your
+//Legal Notice: (C)2020 Altera Corporation. All rights reserved.  Your
 //use of Altera Corporation's design tools, logic functions and other
 //software and tools, and its AMPP partner logic functions, and any
 //output files any of the foregoing (including device programming or
@@ -42,12 +42,13 @@ module nios_system_nios2_cpu_mult_cell (
   input            clk;
   input            reset_n;
 
-  wire    [ 31: 0] M_mul_cell_p1;
-  wire    [ 31: 0] M_mul_cell_p2;
-  wire    [ 31: 0] M_mul_cell_p3;
-  wire             mul_clr;
-  wire    [ 31: 0] mul_src1;
-  wire    [ 31: 0] mul_src2;
+
+wire    [ 31: 0] M_mul_cell_p1;
+wire    [ 31: 0] M_mul_cell_p2;
+wire    [ 31: 0] M_mul_cell_p3;
+wire             mul_clr;
+wire    [ 31: 0] mul_src1;
+wire    [ 31: 0] mul_src2;
   assign mul_clr = ~reset_n;
   assign mul_src1 = E_src1;
   assign mul_src2 = E_src2;
@@ -79,7 +80,7 @@ module nios_system_nios2_cpu_mult_cell (
            the_altmult_add_p1.port_addnsub3 = "PORT_UNUSED",
            the_altmult_add_p1.representation_a = "UNSIGNED",
            the_altmult_add_p1.representation_b = "UNSIGNED",
-           the_altmult_add_p1.selected_device_family = "CYCLONEIVGX",
+           the_altmult_add_p1.selected_device_family = "CYCLONE10LP",
            the_altmult_add_p1.signed_pipeline_aclr_a = "ACLR0",
            the_altmult_add_p1.signed_pipeline_aclr_b = "ACLR0",
            the_altmult_add_p1.signed_pipeline_register_a = "CLOCK0",
@@ -118,7 +119,7 @@ module nios_system_nios2_cpu_mult_cell (
            the_altmult_add_p2.port_addnsub3 = "PORT_UNUSED",
            the_altmult_add_p2.representation_a = "UNSIGNED",
            the_altmult_add_p2.representation_b = "UNSIGNED",
-           the_altmult_add_p2.selected_device_family = "CYCLONEIVGX",
+           the_altmult_add_p2.selected_device_family = "CYCLONE10LP",
            the_altmult_add_p2.signed_pipeline_aclr_a = "ACLR0",
            the_altmult_add_p2.signed_pipeline_aclr_b = "ACLR0",
            the_altmult_add_p2.signed_pipeline_register_a = "CLOCK0",
@@ -157,7 +158,7 @@ module nios_system_nios2_cpu_mult_cell (
            the_altmult_add_p3.port_addnsub3 = "PORT_UNUSED",
            the_altmult_add_p3.representation_a = "UNSIGNED",
            the_altmult_add_p3.representation_b = "UNSIGNED",
-           the_altmult_add_p3.selected_device_family = "CYCLONEIVGX",
+           the_altmult_add_p3.selected_device_family = "CYCLONE10LP",
            the_altmult_add_p3.signed_pipeline_aclr_a = "ACLR0",
            the_altmult_add_p3.signed_pipeline_aclr_b = "ACLR0",
            the_altmult_add_p3.signed_pipeline_register_a = "CLOCK0",

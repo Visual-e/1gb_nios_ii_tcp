@@ -37,17 +37,16 @@
 # -------------------------------------------------------------------------- #
 
 
-set_global_assignment -name FAMILY "Cyclone IV GX"
-set_global_assignment -name DEVICE EP4CGX150DF31C7
+set_global_assignment -name FAMILY "Cyclone 10 LP"
+set_global_assignment -name DEVICE 10CL025YE144I7G
 set_global_assignment -name TOP_LEVEL_ENTITY simplified_tcp
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 15.0.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "14:13:24  DECEMBER 02, 2016"
-set_global_assignment -name LAST_QUARTUS_VERSION 15.0.0
+set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
-set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
-set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP "-40"
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 100
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
-set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
 set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT NONE -section_id eda_simulation
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
@@ -55,43 +54,57 @@ set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
 set_global_assignment -name QSYS_FILE nios_system.qsys
 set_global_assignment -name QIP_FILE pll_clock_PHY1.qip
 set_global_assignment -name QIP_FILE my_pll.qip
 set_global_assignment -name VERILOG_FILE simplified_tcp.v
 set_global_assignment -name SDC_FILE nios_system/synthesis/simplified_tcp.sdc
-set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
-set_location_assignment PIN_AJ16 -to CLOCK_50
-set_location_assignment PIN_A12 -to ENET_GTX_CLK
-set_location_assignment PIN_C16 -to ENET_MDC
-set_location_assignment PIN_C15 -to ENET_MDIO
-set_location_assignment PIN_C14 -to ENET_RST_N
-set_location_assignment PIN_L15 -to ENET_RX_CLK
-set_location_assignment PIN_B7 -to ENET_RX_DATA[3]
-set_location_assignment PIN_A5 -to ENET_RX_DATA[2]
-set_location_assignment PIN_E13 -to ENET_RX_DATA[1]
-set_location_assignment PIN_F15 -to ENET_RX_DATA[0]
-set_location_assignment PIN_A8 -to ENET_RX_DV
-set_location_assignment PIN_D15 -to ENET_TX_DATA[3]
-set_location_assignment PIN_C13 -to ENET_TX_DATA[2]
-set_location_assignment PIN_E7 -to ENET_TX_DATA[1]
-set_location_assignment PIN_B12 -to ENET_TX_DATA[0]
-set_location_assignment PIN_D14 -to ENET_TX_EN
-set_location_assignment PIN_AE25 -to KEY
-set_location_assignment PIN_R30 -to s1_switch[7]
-set_location_assignment PIN_T28 -to s1_switch[6]
-set_location_assignment PIN_U21 -to s1_switch[5]
-set_location_assignment PIN_AB30 -to s1_switch[4]
-set_location_assignment PIN_W15 -to s1_switch[3]
-set_location_assignment PIN_V21 -to s1_switch[2]
-set_location_assignment PIN_U30 -to s1_switch[1]
-set_location_assignment PIN_V28 -to s1_switch[0]
-set_location_assignment PIN_T27 -to s1_led[7]
-set_location_assignment PIN_R25 -to s1_led[6]
-set_location_assignment PIN_T26 -to s1_led[5]
-set_location_assignment PIN_T21 -to s1_led[4]
-set_location_assignment PIN_W25 -to s1_led[3]
-set_location_assignment PIN_V27 -to s1_led[2]
-set_location_assignment PIN_T24 -to s1_led[1]
-set_location_assignment PIN_T23 -to s1_led[0]
+set_location_assignment PIN_23 -to CLOCK_50
+set_location_assignment PIN_114 -to ENET_GTX_CLK
+set_location_assignment PIN_112 -to ENET_MDC
+set_location_assignment PIN_135 -to ENET_RX_CLK
+set_location_assignment PIN_111 -to ENET_MDIO
+set_location_assignment PIN_119 -to ENET_TX_DATA[0]
+set_location_assignment PIN_120 -to ENET_TX_DATA[1]
+set_location_assignment PIN_121 -to ENET_TX_DATA[2]
+set_location_assignment PIN_125 -to ENET_TX_DATA[3]
+set_location_assignment PIN_113 -to ENET_RST_N
+set_location_assignment PIN_137 -to ENET_RX_DATA[0]
+set_location_assignment PIN_141 -to ENET_RX_DATA[1]
+set_location_assignment PIN_142 -to ENET_RX_DATA[2]
+set_location_assignment PIN_143 -to ENET_RX_DATA[3]
+set_location_assignment PIN_136 -to ENET_RX_DV
+set_location_assignment PIN_115 -to ENET_TX_EN
+set_location_assignment PIN_28 -to addr[0]
+set_location_assignment PIN_31 -to addr[1]
+set_location_assignment PIN_32 -to addr[2]
+set_location_assignment PIN_33 -to addr[3]
+set_location_assignment PIN_39 -to addr[4]
+set_location_assignment PIN_42 -to addr[5]
+set_location_assignment PIN_43 -to addr[6]
+set_location_assignment PIN_44 -to addr[7]
+set_location_assignment PIN_46 -to addr[8]
+set_location_assignment PIN_49 -to addr[9]
+set_location_assignment PIN_50 -to addr[10]
+set_location_assignment PIN_51 -to addr[11]
+set_location_assignment PIN_58 -to dq[0]
+set_location_assignment PIN_59 -to dq[1]
+set_location_assignment PIN_60 -to dq[2]
+set_location_assignment PIN_65 -to dq[3]
+set_location_assignment PIN_66 -to dq[4]
+set_location_assignment PIN_67 -to dq[5]
+set_location_assignment PIN_68 -to dq[6]
+set_location_assignment PIN_69 -to dq[7]
+set_location_assignment PIN_71 -to ba[0]
+set_location_assignment PIN_72 -to ba[1]
+set_location_assignment PIN_80 -to cas_n
+set_location_assignment PIN_85 -to dqm
+set_location_assignment PIN_83 -to ras_n
+set_location_assignment PIN_77 -to we_n
+set_location_assignment PIN_76 -to clk_n
+set_location_assignment PIN_53 -to KEY[3]
+set_location_assignment PIN_52 -to KEY[2]
+set_location_assignment PIN_25 -to KEY[1]
+set_location_assignment PIN_24 -to KEY[0]
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

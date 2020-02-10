@@ -1,18 +1,14 @@
-Analysis & Synthesis Status : Successful - Thu Dec 08 23:48:54 2016
-Quartus II 64-Bit Version : 15.0.0 Build 145 04/22/2015 SJ Web Edition
+Analysis & Synthesis Status : Successful - Mon Feb 10 23:05:26 2020
+Quartus Prime Version : 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 Revision Name : simplified_tcp
 Top-level Entity Name : simplified_tcp
-Family : Cyclone IV GX
-Total logic elements : 11,731
-    Total combinational functions : 8,047
-    Dedicated logic registers : 7,458
-Total registers : 7468
-Total pins : 33
+Family : Cyclone 10 LP
+Total logic elements : 10,168
+    Total combinational functions : 6,898
+    Dedicated logic registers : 6,689
+Total registers : 6699
+Total pins : 55
 Total virtual pins : 0
-Total memory bits : 2,709,766
-Embedded Multiplier 9-bit elements : 6
-Total GXB Receiver Channel PCS : 0
-Total GXB Receiver Channel PMA : 0
-Total GXB Transmitter Channel PCS : 0
-Total GXB Transmitter Channel PMA : 0
+Total memory bits : 301,672
+Embedded Multiplier 9-bit elements : 0
 Total PLLs : 2

@@ -47,11 +47,11 @@
 alt_tse_system_info tse_mac_device[MAXNETS] = {
               
         /************************************************************************************/
-        #if ( defined(TSE_MAC_BASE) && defined(SGDMA_TX_NAME) && defined(SGDMA_RX_NAME) )
+        #if ( defined(TSE_0_TSE_BASE) && defined(TSE_0_DMA_TX_CSR_NAME) && defined(TSE_0_DMA_RX_CSR_NAME) )
 			#ifdef DESCRIPTOR_MEMORY_BASE
-				TSE_SYSTEM_EXT_MEM_NO_SHARED_FIFO(TSE_MAC, 0, SGDMA_TX, SGDMA_RX, TSE_PHY_AUTO_ADDRESS, 0, DESCRIPTOR_MEMORY)
+                TSE_SYSTEM_EXT_MEM_NO_SHARED_FIFO(TSE_0_TSE, 0, TSE_0_DMA_TX, TSE_0_DMA_RX, TSE_PHY_AUTO_ADDRESS, 0, DESCRIPTOR_MEMORY)
 			#else
-				TSE_SYSTEM_INT_MEM_NO_SHARED_FIFO(TSE_MAC, 0, SGDMA_TX, SGDMA_RX, TSE_PHY_AUTO_ADDRESS, 0)
+                TSE_SYSTEM_INT_MEM_NO_SHARED_FIFO(TSE_0_TSE, 0, TSE_0_DMA_TX, TSE_0_DMA_RX, TSE_PHY_AUTO_ADDRESS, 0)
 			#endif
         #endif
         /************************************************************************************/		

@@ -39,7 +39,7 @@ extern "C"
 #endif /* __cplusplus */
 
 /* Define whole TSE system (dedicated descriptor memory, no shared fifo) */
-#define TSE_SYSTEM_EXT_MEM_NO_SHARED_FIFO(tse_name, offset, sgdma_tx_name, sgdma_rx_name, phy_addres, phy_cfg_fp, desc_mem_name) {  \
+#define TSE_SYSTEM_EXT_MEM_NO_SHARED_FIFO(tse_name, offset, msgdma_tx_name, msgdma_rx_name, phy_addres, phy_cfg_fp, desc_mem_name) {  \
     tse_name##_BASE + offset,             \
     tse_name##_TRANSMIT_FIFO_DEPTH,       \
     tse_name##_RECEIVE_FIFO_DEPTH,        \
@@ -52,9 +52,9 @@ extern "C"
     tse_name##_NUMBER_OF_MAC_MDIO_SHARED, \
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII,                 \
-    sgdma_tx_name##_NAME,                 \
-    sgdma_rx_name##_NAME,                 \
-    sgdma_rx_name##_IRQ,                  \
+    msgdma_tx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_IRQ,             \
     TSE_EXT_DESC_MEM,                     \
 	desc_mem_name##_BASE,                 \
 	TSE_NO_SHARED_FIFO,                   \
@@ -69,7 +69,7 @@ extern "C"
 },
 
 /* Define whole TSE system (program memory as descriptor memory, no shared fifo) */
-#define TSE_SYSTEM_INT_MEM_NO_SHARED_FIFO(tse_name, offset, sgdma_tx_name, sgdma_rx_name, phy_addres, phy_cfg_fp) {  \
+#define TSE_SYSTEM_INT_MEM_NO_SHARED_FIFO(tse_name, offset, msgdma_tx_name, msgdma_rx_name, phy_addres, phy_cfg_fp) {  \
     tse_name##_BASE + offset,             \
     tse_name##_TRANSMIT_FIFO_DEPTH,       \
     tse_name##_RECEIVE_FIFO_DEPTH,        \
@@ -82,9 +82,9 @@ extern "C"
     tse_name##_NUMBER_OF_MAC_MDIO_SHARED, \
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII,                 \
-    sgdma_tx_name##_NAME,                 \
-    sgdma_rx_name##_NAME,                 \
-    sgdma_rx_name##_IRQ,                  \
+    msgdma_tx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_IRQ,             \
     TSE_INT_DESC_MEM,                     \
 	TSE_INT_DESC_MEM,                     \
 	TSE_NO_SHARED_FIFO,                   \
@@ -99,7 +99,7 @@ extern "C"
 },
 
 /* Define whole TSE system (dedicated descriptor memory, use shared fifo) */
-#define TSE_SYSTEM_EXT_MEM_WITH_SHARED_FIFO(tse_name, offset, sgdma_tx_name, sgdma_rx_name, phy_addres, phy_cfg_fp, desc_mem_name, shared_fifo_tx_name, shared_fifo_rx_name) {  \
+#define TSE_SYSTEM_EXT_MEM_WITH_SHARED_FIFO(tse_name, offset, msgdma_tx_name, msgdma_rx_name, phy_addres, phy_cfg_fp, desc_mem_name, shared_fifo_tx_name, shared_fifo_rx_name) {  \
     tse_name##_BASE + offset,             \
     tse_name##_TRANSMIT_FIFO_DEPTH,       \
     tse_name##_RECEIVE_FIFO_DEPTH,        \
@@ -112,9 +112,9 @@ extern "C"
     tse_name##_NUMBER_OF_MAC_MDIO_SHARED, \
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII,                 \
-    sgdma_tx_name##_NAME,                 \
-    sgdma_rx_name##_NAME,                 \
-    sgdma_rx_name##_IRQ,                  \
+    msgdma_tx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_IRQ,             \
     TSE_EXT_DESC_MEM,                     \
 	desc_mem_name##_BASE,                 \
 	TSE_USE_SHARED_FIFO,                  \
@@ -129,7 +129,7 @@ extern "C"
 },
 
 /* Define whole TSE system (program memory as descriptor memory, use shared fifo) */
-#define TSE_SYSTEM_INT_MEM_WITH_SHARED_FIFO(tse_name, offset, sgdma_tx_name, sgdma_rx_name, phy_addres, phy_cfg_fp, shared_fifo_tx_name, shared_fifo_rx_name) {  \
+#define TSE_SYSTEM_INT_MEM_WITH_SHARED_FIFO(tse_name, offset, msgdma_tx_name, msgdma_rx_name, phy_addres, phy_cfg_fp, shared_fifo_tx_name, shared_fifo_rx_name) {  \
     tse_name##_BASE + offset,             \
     tse_name##_TRANSMIT_FIFO_DEPTH,       \
     tse_name##_RECEIVE_FIFO_DEPTH,        \
@@ -142,9 +142,9 @@ extern "C"
     tse_name##_NUMBER_OF_MAC_MDIO_SHARED, \
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII,                 \
-    sgdma_tx_name##_NAME,                 \
-    sgdma_rx_name##_NAME,                 \
-    sgdma_rx_name##_IRQ,                  \
+    msgdma_tx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_IRQ,             \
     TSE_INT_DESC_MEM,                     \
 	TSE_INT_DESC_MEM,                     \
 	TSE_USE_SHARED_FIFO,                  \
@@ -162,7 +162,7 @@ extern "C"
 
 /* Define whole TSE system (dedicated descriptor memory, no shared fifo, enable MDIO sharing on first MAC) */
 /* MDIO sharing not supported for Multi-channel MAC */
-#define TSE_SYSTEM_EXT_MEM_NO_SHARED_FIFO_ENABLE_MDIO_SHARING(tse_name, offset, sgdma_tx_name, sgdma_rx_name, phy_addres, phy_cfg_fp, desc_mem_name, number_of_mac_mdio_sharing) {  \
+#define TSE_SYSTEM_EXT_MEM_NO_SHARED_FIFO_ENABLE_MDIO_SHARING(tse_name, offset, msgdma_tx_name, msgdma_rx_name, phy_addres, phy_cfg_fp, desc_mem_name, number_of_mac_mdio_sharing) {  \
     tse_name##_BASE + offset,             \
     tse_name##_TRANSMIT_FIFO_DEPTH,       \
     tse_name##_RECEIVE_FIFO_DEPTH,        \
@@ -175,9 +175,9 @@ extern "C"
     number_of_mac_mdio_sharing,           \
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII,                 \
-    sgdma_tx_name##_NAME,                 \
-    sgdma_rx_name##_NAME,                 \
-    sgdma_rx_name##_IRQ,                  \
+    msgdma_tx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_IRQ,             \
     TSE_EXT_DESC_MEM,                     \
 	desc_mem_name##_BASE,                 \
 	TSE_NO_SHARED_FIFO,                   \
@@ -193,7 +193,7 @@ extern "C"
 
 /* Define whole TSE system (program memory as descriptor memory, no shared fifo, enable MDIO sharing on first MAC) */
 /* MDIO sharing not supported for Multi-channel MAC */
-#define TSE_SYSTEM_INT_MEM_NO_SHARED_FIFO_ENABLE_MDIO_SHARING(tse_name, offset, sgdma_tx_name, sgdma_rx_name, phy_addres, phy_cfg_fp, number_of_mac_mdio_sharing) {  \
+#define TSE_SYSTEM_INT_MEM_NO_SHARED_FIFO_ENABLE_MDIO_SHARING(tse_name, offset, msgdma_tx_name, msgdma_rx_name, phy_addres, phy_cfg_fp, number_of_mac_mdio_sharing) {  \
     tse_name##_BASE + offset,             \
     tse_name##_TRANSMIT_FIFO_DEPTH,       \
     tse_name##_RECEIVE_FIFO_DEPTH,        \
@@ -206,9 +206,9 @@ extern "C"
     number_of_mac_mdio_sharing,           \
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII,                 \
-    sgdma_tx_name##_NAME,                 \
-    sgdma_rx_name##_NAME,                 \
-    sgdma_rx_name##_IRQ,                  \
+    msgdma_tx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_IRQ,             \
     TSE_INT_DESC_MEM,                     \
 	TSE_INT_DESC_MEM,                     \
 	TSE_NO_SHARED_FIFO,                   \
@@ -224,7 +224,7 @@ extern "C"
 
 /* Define whole TSE system (dedicated descriptor memory, use shared fifo, enable MDIO sharing on first MAC) */
 /* MDIO sharing not supported for Multi-channel MAC */
-#define TSE_SYSTEM_EXT_MEM_WITH_SHARED_FIFO_ENABLE_MDIO_SHARING(tse_name, offset, sgdma_tx_name, sgdma_rx_name, phy_addres, phy_cfg_fp, desc_mem_name, shared_fifo_tx_name, shared_fifo_rx_name, number_of_mac_mdio_sharing) {  \
+#define TSE_SYSTEM_EXT_MEM_WITH_SHARED_FIFO_ENABLE_MDIO_SHARING(tse_name, offset, msgdma_tx_name, msgdma_rx_name, phy_addres, phy_cfg_fp, desc_mem_name, shared_fifo_tx_name, shared_fifo_rx_name, number_of_mac_mdio_sharing) {  \
     tse_name##_BASE + offset,             \
     tse_name##_TRANSMIT_FIFO_DEPTH,       \
     tse_name##_RECEIVE_FIFO_DEPTH,        \
@@ -237,9 +237,9 @@ extern "C"
     number_of_mac_mdio_sharing,           \
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII,                 \
-    sgdma_tx_name##_NAME,                 \
-    sgdma_rx_name##_NAME,                 \
-    sgdma_rx_name##_IRQ,                  \
+    msgdma_tx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_IRQ,             \
     TSE_EXT_DESC_MEM,                     \
 	desc_mem_name##_BASE,                 \
 	TSE_USE_SHARED_FIFO,                  \
@@ -255,7 +255,7 @@ extern "C"
 
 /* Define whole TSE system (program memory as descriptor memory, use shared fifo, enable MDIO sharing on first MAC) */
 /* MDIO sharing not supported for Multi-channel MAC */
-#define TSE_SYSTEM_INT_MEM_WITH_SHARED_FIFO_ENABLE_MDIO_SHARING(tse_name, offset, sgdma_tx_name, sgdma_rx_name, phy_addres, phy_cfg_fp, shared_fifo_tx_name, shared_fifo_rx_name, number_of_mac_mdio_sharing) {  \
+#define TSE_SYSTEM_INT_MEM_WITH_SHARED_FIFO_ENABLE_MDIO_SHARING(tse_name, offset, msgdma_tx_name, msgdma_rx_name, phy_addres, phy_cfg_fp, shared_fifo_tx_name, shared_fifo_rx_name, number_of_mac_mdio_sharing) {  \
     tse_name##_BASE + offset,             \
     tse_name##_TRANSMIT_FIFO_DEPTH,       \
     tse_name##_RECEIVE_FIFO_DEPTH,        \
@@ -268,9 +268,9 @@ extern "C"
     number_of_mac_mdio_sharing,           \
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII,                 \
-    sgdma_tx_name##_NAME,                 \
-    sgdma_rx_name##_NAME,                 \
-    sgdma_rx_name##_IRQ,                  \
+    msgdma_tx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_NAME,            \
+    msgdma_rx_name##_CSR_IRQ,             \
     TSE_INT_DESC_MEM,                     \
 	TSE_INT_DESC_MEM,                     \
 	TSE_USE_SHARED_FIFO,                  \
@@ -303,11 +303,11 @@ extern "C"
     tse_name##_PCS,                       \
     tse_name##_PCS_SGMII
 
-/* Define SGDMA of TSE system */
-#define TSE_SYSTEM_SGDMA(sgdma_tx_name, sgdma_rx_name)	\
-	sgdma_tx_name##_NAME,           \
-    sgdma_rx_name##_NAME,           \
-    sgdma_rx_name##_IRQ
+/* Define MSGDMA of TSE system */
+#define TSE_SYSTEM_MSGDMA(msgdma_tx_name, msgdma_rx_name)	\
+	msgdma_tx_name##_CSR_NAME,           \
+    msgdma_rx_name##_CSR_NAME,           \
+    msgdma_rx_name##_CSR_IRQ
 
 /* Define descriptor memory of TSE system (dedicated descriptor memory) */
 #define TSE_SYSTEM_DESC_MEM(desc_mem_name)	\

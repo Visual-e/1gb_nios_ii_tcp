@@ -150,18 +150,18 @@ flash2dat_extra_args = $(mem_pad_flag) $(mem_reloc_input_flag)
 
 # This following VERSION comment indicates the version of the tool used to 
 # generate this makefile. A makefile variable is provided for VERSION as well. 
-# ACDS_VERSION: 15.0
-ACDS_VERSION := 15.0
+# ACDS_VERSION: 18.1
+ACDS_VERSION := 18.1
 
 # This following BUILD_NUMBER comment indicates the build number of the tool 
 # used to generate this makefile. 
-# BUILD_NUMBER: 145
+# BUILD_NUMBER: 625
 
 # Optimize for simulation
 SIM_OPTIMIZE ?= 0
 
 # The CPU reset address as needed by elf2flash
-RESET_ADDRESS ?= 0x00080000
+RESET_ADDRESS ?= 0x01008000
 
 # The specific Nios II ELF file format to use.
 NIOS2_ELF_FORMAT ?= elf32-littlenios2
@@ -180,9 +180,9 @@ DAT_FILES += $(HDL_SIM_DIR)/$(MEM_0).dat
 HDL_SIM_INSTALL_FILES += $(HDL_SIM_INSTALL_DIR)/$(MEM_0).dat
 SYM_FILES += $(HDL_SIM_DIR)/$(MEM_0).sym
 HDL_SIM_INSTALL_FILES += $(HDL_SIM_INSTALL_DIR)/$(MEM_0).sym
-$(MEM_0)_START := 0x00100000
-$(MEM_0)_END := 0x00100fff
-$(MEM_0)_SPAN := 0x00001000
+$(MEM_0)_START := 0x01010000
+$(MEM_0)_END := 0x010101ff
+$(MEM_0)_SPAN := 0x00000200
 $(MEM_0)_HIERARCHICAL_PATH := descriptor_memory
 $(MEM_0)_WIDTH := 32
 $(MEM_0)_HEX_DATA_WIDTH := 32
@@ -202,9 +202,9 @@ DAT_FILES += $(HDL_SIM_DIR)/$(MEM_1).dat
 HDL_SIM_INSTALL_FILES += $(HDL_SIM_INSTALL_DIR)/$(MEM_1).dat
 SYM_FILES += $(HDL_SIM_DIR)/$(MEM_1).sym
 HDL_SIM_INSTALL_FILES += $(HDL_SIM_INSTALL_DIR)/$(MEM_1).sym
-$(MEM_1)_START := 0x00080000
-$(MEM_1)_END := 0x000cafff
-$(MEM_1)_SPAN := 0x0004b000
+$(MEM_1)_START := 0x01008000
+$(MEM_1)_END := 0x0100bfff
+$(MEM_1)_SPAN := 0x00004000
 $(MEM_1)_HIERARCHICAL_PATH := main_memory
 $(MEM_1)_WIDTH := 32
 $(MEM_1)_HEX_DATA_WIDTH := 32
@@ -213,6 +213,25 @@ $(MEM_1)_CREATE_LANES := 0
 
 .PHONY: main_memory
 main_memory: check_elf_exists $(MEM_INIT_DIR)/$(MEM_1).hex $(HDL_SIM_DIR)/$(MEM_1).dat $(HDL_SIM_DIR)/$(MEM_1).sym
+
+# Memory: new_sdram_controller_0
+MEM_2 := new_sdram_controller_0
+$(MEM_2)_NAME := new_sdram_controller_0
+DAT_FILES += $(HDL_SIM_DIR)/$(MEM_2).dat
+HDL_SIM_INSTALL_FILES += $(HDL_SIM_INSTALL_DIR)/$(MEM_2).dat
+SYM_FILES += $(HDL_SIM_DIR)/$(MEM_2).sym
+HDL_SIM_INSTALL_FILES += $(HDL_SIM_INSTALL_DIR)/$(MEM_2).sym
+$(MEM_2)_START := 0x00000000
+$(MEM_2)_END := 0x00ffffff
+$(MEM_2)_SPAN := 0x01000000
+$(MEM_2)_HIERARCHICAL_PATH := new_sdram_controller_0
+$(MEM_2)_WIDTH := 8
+$(MEM_2)_HEX_DATA_WIDTH := 8
+$(MEM_2)_ENDIANNESS := --little-endian-mem
+$(MEM_2)_CREATE_LANES := 0
+
+.PHONY: new_sdram_controller_0
+new_sdram_controller_0: check_elf_exists $(HDL_SIM_DIR)/$(MEM_2).dat $(HDL_SIM_DIR)/$(MEM_2).sym
 
 
 #END OF BSP SPECIFIC

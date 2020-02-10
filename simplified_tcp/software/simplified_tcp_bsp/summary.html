@@ -22,13 +22,13 @@
 <td width="20%" bgcolor="#77BBFF">BSP Version:</td><td>default</td>
 </tr>
 <tr mode="wrap">
-<td width="20%" bgcolor="#77BBFF">BSP Generated On:</td><td>Dec 9, 2016 1:20:34 AM</td>
+<td width="20%" bgcolor="#77BBFF">BSP Generated On:</td><td>11.02.2020 0:08:15</td>
 </tr>
 <tr mode="wrap">
-<td width="20%" bgcolor="#77BBFF">BSP Generated Timestamp:</td><td>1481264434972</td>
+<td width="20%" bgcolor="#77BBFF">BSP Generated Timestamp:</td><td>1581358095940</td>
 </tr>
 <tr mode="wrap">
-<td width="20%" bgcolor="#77BBFF">BSP Generated Location:</td><td>D:\simplified_tcp\software\simplified_tcp_bsp</td>
+<td width="20%" bgcolor="#77BBFF">BSP Generated Location:</td><td>D:\projects\prj_fpga_altera\prj_VE-10CL025\cl025_prj\projects\1gb_nios_ii_tcp\software\simplified_tcp_bsp</td>
 </tr>
 </table>
 <br>
@@ -38,31 +38,34 @@
 <th align="left" width="20%">Slave Descriptor</th><th align="left" width="40%">Address Range</th><th align="left" width="20%">Size</th><th align="left" width="20%">Attributes</th>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>jtag_uart</td><td>0x001024A0 - 0x001024A7</td><td>8</td><td class="listing">printable</td>
+<td>jtag_uart</td><td>0x010124C0 - 0x010124C7</td><td>8</td><td class="listing">printable</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>led</td><td>0x00102490 - 0x0010249F</td><td>16</td><td class="listing">&nbsp;</td>
+<td>led</td><td>0x010124B0 - 0x010124BF</td><td>16</td><td class="listing">&nbsp;</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>switch</td><td>0x00102480 - 0x0010248F</td><td>16</td><td class="listing">&nbsp;</td>
+<td>switch</td><td>0x010124A0 - 0x010124AF</td><td>16</td><td class="listing">&nbsp;</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>sgdma_rx</td><td>0x00102440 - 0x0010247F</td><td>64</td><td class="listing">&nbsp;</td>
+<td>timer_0</td><td>0x01012480 - 0x0101249F</td><td>32</td><td class="listing">timer</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>sgdma_tx</td><td>0x00102400 - 0x0010243F</td><td>64</td><td class="listing">&nbsp;</td>
+<td>sgdma_rx</td><td>0x01012440 - 0x0101247F</td><td>64</td><td class="listing">&nbsp;</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>tse</td><td>0x00102000 - 0x001023FF</td><td>1024</td><td class="listing">&nbsp;</td>
+<td>sgdma_tx</td><td>0x01012400 - 0x0101243F</td><td>64</td><td class="listing">&nbsp;</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>descriptor_memory</td><td>0x00100000 - 0x00100FFF</td><td>4096</td><td class="listing">memory</td>
+<td>tse</td><td>0x01012000 - 0x010123FF</td><td>1024</td><td class="listing">&nbsp;</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>main_memory</td><td>0x00080000 - 0x000CAFFF</td><td>307200</td><td class="listing">memory</td>
+<td>descriptor_memory</td><td>0x01010000 - 0x010101FF</td><td>512</td><td class="listing">memory</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>timer_0</td><td>0x00000000 - 0x0000001F</td><td>32</td><td class="listing">timer</td>
+<td>main_memory</td><td>0x01008000 - 0x0100BFFF</td><td>16384</td><td class="listing">memory</td>
+</tr>
+<tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
+<td>new_sdram_controller_0</td><td>0x00000000 - 0x00FFFFFF</td><td>16777216</td><td class="listing">memory</td>
 </tr>
 </table>
 <br>
@@ -81,7 +84,7 @@
 <th align="left" width="50%">Section</th><th align="left" width="50%">Region</th>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
-<td>.text</td><td>main_memory</td>
+<td>.text</td><td>new_sdram_controller_0</td>
 </tr>
 <tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
 <td>.rodata</td><td>main_memory</td>
@@ -99,6 +102,25 @@
 <td>.stack</td><td>main_memory</td>
 </tr>
 </table>
+<br>
+<br>
+<h3>Software Packages</h3>
+<table border="1" bgcolor="#FFFFCC" width="50%">
+<tr bgcolor="#77BBFF" mode="wrap">
+<th align="left" width="15%">Software Package</th><th align="left" width="15%">Version</th>
+</tr>
+<tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
+<td>altera_hostfs</td><td>default</td>
+</tr>
+<tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
+<td>altera_quad_seven_seg</td><td>default</td>
+</tr>
+<tr mode="wrap" STYLE="display: 'block'; font-family: 'courier'; color: '#000000'; font-weight: '500'; font-size: '14'; margin-top: '10pt'; text-align: 'left'">
+<td>altera_ro_zipfs</td><td>default</td>
+</tr>
+</table>
+<br>
+<br>
 <h3>Settings</h3>
 <table border="1" bgcolor="#FFFFCC" width="60%">
 <tr bgcolor="#77BBFF">
@@ -148,6 +170,195 @@
 </tr>
 <tr mode="wrap">
 <td width="20%">Description:</td><td>Small-footprint (polled mode) driver</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Restrictions:</td><td>none</td>
+</tr>
+</table>
+<br>
+<table border="1" bgcolor="#FFFFCC" width="60%">
+<tr bgcolor="#77BBFF">
+<td align="left" width="15%">Setting Name:</td><td align="left">altera_eth_tse_driver_hal.autoneg_timeout</td>
+</tr>
+<tr>
+<td width="20%">Identifier:</td><td>ALTERA_AUTONEG_TIMEOUT_THRESHOLD</td>
+</tr>
+<tr>
+<td width="20%">Default Value:</td><td>2500</td>
+</tr>
+<tr>
+<td width="20%">Value:</td><td>2500</td>
+</tr>
+<tr>
+<td width="20%">Type:</td><td>DecimalNumber</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Destination:</td><td>public_mk_define</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Description:</td><td>Auto Negotiation Timeout in milliseconds</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Restrictions:</td><td>none</td>
+</tr>
+</table>
+<br>
+<table border="1" bgcolor="#FFFFCC" width="60%">
+<tr bgcolor="#77BBFF">
+<td align="left" width="15%">Setting Name:</td><td align="left">altera_eth_tse_driver_hal.checklink_timeout</td>
+</tr>
+<tr>
+<td width="20%">Identifier:</td><td>ALTERA_CHECKLINK_TIMEOUT_THRESHOLD</td>
+</tr>
+<tr>
+<td width="20%">Default Value:</td><td>10000</td>
+</tr>
+<tr>
+<td width="20%">Value:</td><td>10000</td>
+</tr>
+<tr>
+<td width="20%">Type:</td><td>DecimalNumber</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Destination:</td><td>public_mk_define</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Description:</td><td>CheckLink Timeout in milliseconds</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Restrictions:</td><td>none</td>
+</tr>
+</table>
+<br>
+<table border="1" bgcolor="#FFFFCC" width="60%">
+<tr bgcolor="#77BBFF">
+<td align="left" width="15%">Setting Name:</td><td align="left">altera_eth_tse_driver_hal.nomdio_timeout</td>
+</tr>
+<tr>
+<td width="20%">Identifier:</td><td>ALTERA_NOMDIO_TIMEOUT_THRESHOLD</td>
+</tr>
+<tr>
+<td width="20%">Default Value:</td><td>1000000</td>
+</tr>
+<tr>
+<td width="20%">Value:</td><td>1000000</td>
+</tr>
+<tr>
+<td width="20%">Type:</td><td>DecimalNumber</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Destination:</td><td>public_mk_define</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Description:</td><td>"No MDIO" Timeout in microseconds</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Restrictions:</td><td>none</td>
+</tr>
+</table>
+<br>
+<table border="1" bgcolor="#FFFFCC" width="60%">
+<tr bgcolor="#77BBFF">
+<td align="left" width="15%">Setting Name:</td><td align="left">altera_hostfs.hostfs_name</td>
+</tr>
+<tr>
+<td width="20%">Identifier:</td><td>ALTERA_HOSTFS_NAME</td>
+</tr>
+<tr>
+<td width="20%">Default Value:</td><td>/mnt/host</td>
+</tr>
+<tr>
+<td width="20%">Value:</td><td>/mnt/host</td>
+</tr>
+<tr>
+<td width="20%">Type:</td><td>QuotedString</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Destination:</td><td>system_h_define</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Description:</td><td>Mount point</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Restrictions:</td><td>none</td>
+</tr>
+</table>
+<br>
+<table border="1" bgcolor="#FFFFCC" width="60%">
+<tr bgcolor="#77BBFF">
+<td align="left" width="15%">Setting Name:</td><td align="left">altera_ro_zipfs.ro_zipfs_base</td>
+</tr>
+<tr>
+<td width="20%">Identifier:</td><td>ALTERA_RO_ZIPFS_BASE</td>
+</tr>
+<tr>
+<td width="20%">Default Value:</td><td>0x0</td>
+</tr>
+<tr>
+<td width="20%">Value:</td><td>0x0</td>
+</tr>
+<tr>
+<td width="20%">Type:</td><td>HexNumber</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Destination:</td><td>system_h_define</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Description:</td><td>Base address of flash memory device</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Restrictions:</td><td>none</td>
+</tr>
+</table>
+<br>
+<table border="1" bgcolor="#FFFFCC" width="60%">
+<tr bgcolor="#77BBFF">
+<td align="left" width="15%">Setting Name:</td><td align="left">altera_ro_zipfs.ro_zipfs_name</td>
+</tr>
+<tr>
+<td width="20%">Identifier:</td><td>ALTERA_RO_ZIPFS_NAME</td>
+</tr>
+<tr>
+<td width="20%">Default Value:</td><td>/mnt/rozipfs</td>
+</tr>
+<tr>
+<td width="20%">Value:</td><td>/mnt/rozipfs</td>
+</tr>
+<tr>
+<td width="20%">Type:</td><td>QuotedString</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Destination:</td><td>system_h_define</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Description:</td><td>Mount point</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Restrictions:</td><td>none</td>
+</tr>
+</table>
+<br>
+<table border="1" bgcolor="#FFFFCC" width="60%">
+<tr bgcolor="#77BBFF">
+<td align="left" width="15%">Setting Name:</td><td align="left">altera_ro_zipfs.ro_zipfs_offset</td>
+</tr>
+<tr>
+<td width="20%">Identifier:</td><td>ALTERA_RO_ZIPFS_OFFSET</td>
+</tr>
+<tr>
+<td width="20%">Default Value:</td><td>0x100000</td>
+</tr>
+<tr>
+<td width="20%">Value:</td><td>0x100000</td>
+</tr>
+<tr>
+<td width="20%">Type:</td><td>HexNumber</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Destination:</td><td>system_h_define</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Description:</td><td>Offset of file system from base of flash</td>
 </tr>
 <tr mode="wrap">
 <td width="20%">Restrictions:</td><td>none</td>
@@ -552,7 +763,7 @@
 <td width="20%">Destination:</td><td>none</td>
 </tr>
 <tr mode="wrap">
-<td width="20%">Description:</td><td>Enables the alt_load() facility. The alt_load() facility copies sections from the .text memory into RAM. If true, this setting sets up the VMA/LMA of sections in linker.x to allow them to be loaded into the .text memory.</td>
+<td width="20%">Description:</td><td>Enables the alt_load() facility. The alt_load() facility copies data sections (.rodata, .rwdata, or .exceptions) from boot memory to RAM. If true, this setting sets up the VMA/LMA of sections in linker.x to allow them to be loaded into the .text memory.</td>
 </tr>
 <tr mode="wrap">
 <td width="20%">Restrictions:</td><td>This setting is typically false if an external bootloader (e.g. flash bootloader) is present.</td>
@@ -705,7 +916,7 @@
 <td width="20%">Default Value:</td><td>none</td>
 </tr>
 <tr>
-<td width="20%">Value:</td><td>main_memory</td>
+<td width="20%">Value:</td><td>new_sdram_controller_0</td>
 </tr>
 <tr>
 <td width="20%">Type:</td><td>UnquotedString</td>
@@ -759,7 +970,7 @@
 <td width="20%">Default Value:</td><td>none</td>
 </tr>
 <tr>
-<td width="20%">Value:</td><td>main_memory</td>
+<td width="20%">Value:</td><td>new_sdram_controller_0</td>
 </tr>
 <tr>
 <td width="20%">Type:</td><td>UnquotedString</td>
@@ -1417,6 +1628,33 @@
 </tr>
 <tr mode="wrap">
 <td width="20%">Description:</td><td>Command executed before each .c/.S file is compiled.</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Restrictions:</td><td>none</td>
+</tr>
+</table>
+<br>
+<table border="1" bgcolor="#FFFFCC" width="60%">
+<tr bgcolor="#77BBFF">
+<td align="left" width="15%">Setting Name:</td><td align="left">hal.make.cflags_mgpopt</td>
+</tr>
+<tr>
+<td width="20%">Identifier:</td><td>CFLAGS_MGPOPT</td>
+</tr>
+<tr>
+<td width="20%">Default Value:</td><td>-mgpopt=global</td>
+</tr>
+<tr>
+<td width="20%">Value:</td><td>-mgpopt=global</td>
+</tr>
+<tr>
+<td width="20%">Type:</td><td>UnquotedString</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Destination:</td><td>public_mk_define</td>
+</tr>
+<tr mode="wrap">
+<td width="20%">Description:</td><td>C/C++ compiler to generate (do not generate) GP-relative accesses. 'none' tells the compilter not to generate GP-relative accesses. 'local' will generate GP-relative accesses for small data objects that are not external, weak, or uninitialized common symbols. Also use GP-relative addressing for objects that have been explicitly placed in a small data section via a section attribute. provides the default set of debug symbols typically required to debug a typical application. 'global' is same as 'local' but also generate GP-relative accesses for small data objects that are external, weak, or common.</td>
 </tr>
 <tr mode="wrap">
 <td width="20%">Restrictions:</td><td>none</td>

@@ -51,7 +51,7 @@ extern "C"
  */
  
 #ifndef TSE_DEBUG_LEVEL
-    #define TSE_DEBUG_LEVEL 5
+    #define TSE_DEBUG_LEVEL 6
 #endif
 
 /* definition without InterNiche */
@@ -91,65 +91,78 @@ void no_printf (char *fmt, ...);
 
 
 
-/* SGDMA dependent */
-#ifdef __ALTERA_AVALON_SGDMA
-#include "altera_avalon_sgdma.h"
+/* MSGDMA dependent */
+#ifdef __ALTERA_MSGDMA
+#include "altera_msgdma.h"
 
 /* Device addressing struct for all hardware TSE MAC depends on */
 typedef struct tse_mac_trans_info_struct {
   np_tse_mac    *base;
-  alt_sgdma_dev *tx_sgdma;
-  alt_sgdma_dev *rx_sgdma;
-  alt_u32       *rx_sgdma_desc_ram;
+  alt_msgdma_dev *tx_msgdma;
+  alt_msgdma_dev *rx_msgdma;
+  alt_u32       *rx_msgdma_desc_ram;
   alt_u32       cfgflags;  // flags or'ed during initialization of COMMAND_CONFIG
 } tse_mac_trans_info;
 
 
 /** @Function Description - Perform initialization steps on transaction info structure to prepare it for .
-  *                        use by the library functionswith two SGDMAs and extra initialization Flags
+  *                        use by the library functions with two MSGDMAs and extra initialization Flags
   * @API Type:          Internal
   * @param mi           Main Device Structure.
   * @param mac_base     Base Address of the Control interface for the TSE MAC
-  * @param tx_sgdma     SGDMA device handle for TSE transmit data path 
-  * @param rx_sgdma     SGDMA device handle for TSE receive data path
+  * @param tx_msgdma     MSGDMA device handle for TSE transmit data path 
+  * @param rx_msgdma     MSGDMA device handle for TSE receive data path
   * @param cfgflags     initialization flags for the device
   * @return SUCCESS 
   */
 
 alt_32 tse_mac_initTransInfo2( tse_mac_trans_info *mi,
                                         alt_u32 mac_base,
-                                        alt_32 tx_sgdma,
-                                        alt_32 rx_sgdma,
+                                        alt_32 tx_msgdma,
+                                        alt_32 rx_msgdma,
                                         alt_32 cfgflags);
 
-/** @Function Description - Synchronous SGDMA copy from buffer memory into transmit FIFO. Waits until 
-  *                         SGDMA has completed.  Raw function without any error checks.
+/** @Function Description - Synchronous MSGDMA copy from buffer memory into transmit FIFO. Waits until 
+  *                         MSGDMA has completed.  Raw function without any error checks.
   * @API Type:              Internal
   * @param mi               Main Device Structure.
-  * @param txDesc           Pointer to the transmit SGDMA descriptor
+  * @param txDesc           Pointer to the transmit MSGDMA descriptor
   * @return actual bytes transferred if ok else ENP_RESOURCE if error
   */
 alt_32 tse_mac_sTxWrite( tse_mac_trans_info *mi,  
-                       alt_sgdma_descriptor *txDesc);
+                       alt_msgdma_standard_descriptor *txDesc);
+                       
+                       
+                       
+/** @Function Description - Asynchronous MSGDMA copy from buffer memory into rxFIFO.
+  *                         Raw function without any transfer error checks.
+  *
+  * @API Type:    Internal
+  * @param mi     Main Device Structure.
+  * @param rxDesc Pointer to the receive MSGDMA descriptor
+  * @return SUCCESS if ok  else -1 if error
+ */                       
+alt_32 tse_mac_aTxWrite( tse_mac_trans_info *mi,  
+                       alt_msgdma_prefetcher_standard_descriptor *txDesc);                       
 
 
 
-/** @Function Description - Asynchronous SGDMA copy from rxFIFO into given buffer memory area.
+/** @Function Description - Asynchronous MSGDMA copy from rxFIFO into given buffer memory area.
   *                         Raw function without any error checks.
   *
   * @API Type:    Internal
   * @param mi     Main Device Structure.
-  * @param rxDesc Pointer to the receive SGDMA descriptor
+  * @param rxDesc Pointer to the receive MSGDMA descriptor
   * @return SUCCESS if ok  else ENP_RESOURCE if error
   *
   * Note:  At the point of this function call return, 
-  *        the SGDMA asynchronous operation may not have been
+  *        the MSGDMA asynchronous operation may not have been
   *        completed yet, so the function does not return
   *        the actual bytes transferred for current descriptor
   */
-alt_32 tse_mac_aRxRead(tse_mac_trans_info *mi, alt_sgdma_descriptor *rxDesc);
+alt_32 tse_mac_aRxRead(tse_mac_trans_info *mi, alt_msgdma_prefetcher_standard_descriptor *rxDesc);
 
-#endif /* __ALTERA_AVALON_SGDMA */
+#endif /* __ALTERA_MSGDMA */
 
 
 
@@ -177,11 +190,11 @@ alt_32 tse_mac_aRxRead(tse_mac_trans_info *mi, alt_sgdma_descriptor *rxDesc);
 
 /* Multi-channel Shared FIFO Depth Settings */
 #ifndef ALTERA_TSE_SHARED_FIFO_TX_DEPTH_DEFAULT
-	#define ALTERA_TSE_SHARED_FIFO_TX_DEPTH_DEFAULT		2040
+    #define ALTERA_TSE_SHARED_FIFO_TX_DEPTH_DEFAULT        2040
 #endif
 
 #ifndef ALTERA_TSE_SHARED_FIFO_RX_DEPTH_DEFAULT
-	#define ALTERA_TSE_SHARED_FIFO_RX_DEPTH_DEFAULT		2040
+    #define ALTERA_TSE_SHARED_FIFO_RX_DEPTH_DEFAULT        2040
 #endif
 
 
@@ -203,18 +216,18 @@ alt_32 tse_mac_aRxRead(tse_mac_trans_info *mi, alt_sgdma_descriptor *rxDesc);
 
 /* getPHYSpeed return error */
 enum {
-	ALT_TSE_E_NO_PMAC_FOUND             = (1 << 23),
-	ALT_TSE_E_NO_MDIO                   = (1 << 22),
-	ALT_TSE_E_NO_PHY                    = (1 << 21),
-	ALT_TSE_E_NO_COMMON_SPEED           = (1 << 20),
-	ALT_TSE_E_AN_NOT_COMPLETE           = (1 << 19),
-	ALT_TSE_E_NO_PHY_PROFILE            = (1 << 18),
-	ALT_TSE_E_PROFILE_INCORRECT_DEFINED = (1 << 17),
-	ALT_TSE_E_INVALID_SPEED             = (1 << 16)
+    ALT_TSE_E_NO_PMAC_FOUND             = (1 << 23),
+    ALT_TSE_E_NO_MDIO                   = (1 << 22),
+    ALT_TSE_E_NO_PHY                    = (1 << 21),
+    ALT_TSE_E_NO_COMMON_SPEED           = (1 << 20),
+    ALT_TSE_E_AN_NOT_COMPLETE           = (1 << 19),
+    ALT_TSE_E_NO_PHY_PROFILE            = (1 << 18),
+    ALT_TSE_E_PROFILE_INCORRECT_DEFINED = (1 << 17),
+    ALT_TSE_E_INVALID_SPEED             = (1 << 16)
 };
 
-/* Maximum number of PHY can be registered into PHY profile */
-#define TSE_MAX_PHY_PROFILE     MAXNETS
+/* Maximum number of PHY that can be registered into PHY profile */
+#define TSE_MAX_PHY_PROFILE     8   
 
 /* Maximum MAC in system */
 #define TSE_MAX_MAC_IN_SYSTEM   MAXNETS
@@ -224,22 +237,15 @@ enum {
 /* System Constant Definition Used in the TSE Driver Code */
 
 
-#define ALTERA_TSE_SW_RESET_TIME_OUT_CNT        10000
-#define ALTERA_TSE_SGDMA_BUSY_TIME_OUT_CNT      1000000 
+#define ALTERA_TSE_SW_RESET_TIME_OUT_CNT         10000
+#define ALTERA_TSE_MSGDMA_BUSY_TIME_OUT_CNT      1000000 
 
-#define ALTERA_TSE_SGDMA_RX_DESC_CHAIN_SIZE     1
+//These values reflect useable chain size plus 1 for ending descriptor
+#define ALTERA_TSE_MSGDMA_RX_DESC_CHAIN_SIZE     9   
+#define ALTERA_TSE_MSGDMA_TX_DESC_CHAIN_SIZE     2   /* currently only a value of 2 is supported */
 
-#define ALTERA_TSE_FIRST_TX_SGDMA_DESC_OFST     0
-#define ALTERA_TSE_SECOND_TX_SGDMA_DESC_OFST    1
-#define ALTERA_TSE_FIRST_RX_SGDMA_DESC_OFST     2
-#define ALTERA_TSE_SECOND_RX_SGDMA_DESC_OFST    3
 #define ALTERA_TSE_MAC_MAX_FRAME_LENGTH         1518
 
-#if ALTERA_TSE_SGDMA_RX_DESC_CHAIN_SIZE > 1
-	#define ALTERA_TSE_SGDMA_INTR_MASK              ALTERA_AVALON_SGDMA_CONTROL_IE_DESC_COMPLETED_MSK | ALTERA_AVALON_SGDMA_CONTROL_IE_CHAIN_COMPLETED_MSK | ALTERA_AVALON_SGDMA_CONTROL_IE_GLOBAL_MSK
-#else
-	#define ALTERA_TSE_SGDMA_INTR_MASK              ALTERA_AVALON_SGDMA_CONTROL_IE_CHAIN_COMPLETED_MSK | ALTERA_AVALON_SGDMA_CONTROL_IE_GLOBAL_MSK
-#endif
 
 #define ALTERA_TSE_FULL_MAC                     0
 #define ALTERA_TSE_MACLITE_10_100               1
@@ -251,12 +257,14 @@ enum {
 
 #define ALTERA_TSE_DUPLEX_MODE_DEFAULT          TSE_PHY_DUPLEX_FULL
 #define ALTERA_TSE_MAC_SPEED_DEFAULT            TSE_PHY_SPEED_100
-#define ALTERA_AUTONEG_TIMEOUT_THRESHOLD        250000
-#define ALTERA_CHECKLINK_TIMEOUT_THRESHOLD      1000000
+/* added as bsp public makefile settings
+#define ALTERA_AUTONEG_TIMEOUT_THRESHOLD        2500
+#define ALTERA_CHECKLINK_TIMEOUT_THRESHOLD      10000
 #define ALTERA_NOMDIO_TIMEOUT_THRESHOLD         1000000
 #define ALTERA_DISGIGA_TIMEOUT_THRESHOLD        5000000
+*/
 
-#define ALTERA_TSE_PCS_IF_MODE                  0x14		/* 0x14th register of ALTERA PCS */
+#define ALTERA_TSE_PCS_IF_MODE                  0x14        /* 0x14th register of ALTERA PCS */
 
 /* PHY ID, backward compatible */
 #define NTL848PHY_ID    0x20005c90  /* National 83848, 10/100 */
@@ -294,6 +302,13 @@ enum {
     DP83848C_OUI       = 0x080017,
     DP83848C_MODEL     = 0x09,
     DP83848C_REV       = 0x0
+};
+
+/* Intel PEF7071 Phy on C10 Devkit */
+enum {
+    PEF7071_OUI       = ((0xd565 << 6) | ((0xa401 >> 10) & 0x3f)),
+    PEF7071_MODEL     = ((0xa401 >> 4) & 0x3f),
+    PEF7071_REV       = (0xa401 & 0x0f)
 };
 
 
@@ -382,108 +397,104 @@ enum {
 
 
 /* 
- * macros to access SGDMA Descriptors used in the TSE driver 
+ * macros to access MSGDMA prefetcher standard Descriptors used in the TSE driver 
  * - use the macros to assure cache coherancy 
  */
-#define IORD_ALTERA_TSE_SGDMA_DESC_READ_ADDR(base)                      (IORD(base, 0x0) & 0xFFFFFFFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_READ_ADDR(base, data)                IOWR(base, 0x0, data)
-#define IORD_ALTERA_TSE_SGDMA_DESC_WRITE_ADDR(base)                     (IORD(base, 0x2) & 0xFFFFFFFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_WRITE_ADDR(base, data)               IOWR(base, 0x2, data)
-#define IORD_ALTERA_TSE_SGDMA_DESC_NEXT(base)                           (IORD(base, 0x4) & 0xFFFFFFFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_NEXT(base, data)                     IOWR(base, 0x4, data)
+#define IORD_ALTERA_TSE_MSGDMA_DESC_READ_ADDR(base)                      (IORD(base, 0x0) & 0xFFFFFFFF)
+#define IOWR_ALTERA_TSE_MSGDMA_DESC_READ_ADDR(base, data)                IOWR(base, 0x0, data)
+#define IORD_ALTERA_TSE_MSGDMA_DESC_WRITE_ADDR(base)                     (IORD(base, 0x1) & 0xFFFFFFFF)
+#define IOWR_ALTERA_TSE_MSGDMA_DESC_WRITE_ADDR(base, data)               IOWR(base, 0x1, data)
+#define IORD_ALTERA_TSE_MSGDMA_DESC_NEXT(base)                           (IORD(base, 0x3) & 0xFFFFFFFF)
+#define IOWR_ALTERA_TSE_MSGDMA_DESC_NEXT(base, data)                     IOWR(base, 0x3, data)
 
-#define IORD_ALTERA_TSE_SGDMA_DESC_BYTES_TO_TRANSFER(base)              (IORD(base, 0x6) & 0xFFFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_BYTES_TO_TRANSFER(base, data)        IOWR(base, 0x6, ((IORD(base, 0x6) & 0xFFFF0000) | data))
-#define IORD_ALTERA_TSE_SGDMA_DESC_READ_BURST(base)                     (((IORD(base, 0x6)) >> 16) & 0xFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_READ_BURST(base, data)               IOWR(base, 0x6, (IORD(base, 0x6) & 0xFF00FFFF) | (data << 16))
-#define IORD_ALTERA_TSE_SGDMA_DESC_WRITE_BURST(base)                    (((IORD(base, 0x6)) >> 24) & 0xFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_WRITE_BURST(base, data)              IOWR(base, 0x6, ((IORD(base, 0x6) & 0x00FFFFFF) | (data << 24)))
+#define IORD_ALTERA_TSE_MSGDMA_DESC_BYTES_TO_TRANSFER(base)              (IORD(base, 0x2) & 0xFFFFFFFF)
+#define IOWR_ALTERA_TSE_MSGDMA_DESC_BYTES_TO_TRANSFER(base, data)        IOWR(base, 0x2,  data))
 
-#define IORD_ALTERA_TSE_SGDMA_DESC_ACTUAL_BYTES_TRANSFERRED(base)       (IORD(base, 0x7) & 0xFFFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_ACTUAL_BYTES_TRANSFERRED(base, data) IOWR(base, 0x7, ((IORD(base, 0x7) & 0xFFFF0000) | data))
-#define IORD_ALTERA_TSE_SGDMA_DESC_STATUS(base)                         (((IORD(base, 0x7)) >> 16) & 0xFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_STATUS(base, data)                   IOWR(base, 0x7, (IORD(base, 0x7) & 0xFF00FFFF) | (data << 16))
-#define IORD_ALTERA_TSE_SGDMA_DESC_CONTROL(base)                        (((IORD(base, 0x7)) >> 24) & 0xFF)
-#define IOWR_ALTERA_TSE_SGDMA_DESC_CONTROL(base, data)                  IOWR(base, 0x7, ((IORD(base, 0x7) & 0x00FFFFFF) | (data << 24)))
+#define IORD_ALTERA_TSE_MSGDMA_DESC_ACTUAL_BYTES_TRANSFERRED(base)       (IORD(base, 0x4) & 0xFFFFFFFF)
+#define IOWR_ALTERA_TSE_MSGDMA_DESC_ACTUAL_BYTES_TRANSFERRED(base, data) IOWR(base, 0x4,  data))
+#define IORD_ALTERA_TSE_MSGDMA_DESC_STATUS(base)                         (((IORD(base, 0x5)) >> 16) & 0xFFFF)
+#define IOWR_ALTERA_TSE_MSGDMA_DESC_STATUS(base, data)                   IOWR(base, 0x5, (data & 0xffff))
+#define IORD_ALTERA_TSE_MSGDMA_DESC_CONTROL(base)                        (((IORD(base, 0x7) >> 24) & 0xFF)
+#define IOWR_ALTERA_TSE_MSGDMA_DESC_CONTROL(base, data)                  IOWR(base, 0x7, data)
 
 /* TSE System Component Structure */
 typedef struct alt_tse_system_mac_struct {
-	alt_u32		tse_mac_base;                     /* Base address of TSE MAC                               */
-	alt_u16		tse_tx_depth;                     /* TX Receive FIFO depth                                 */
-	alt_u16		tse_rx_depth;                     /* RX Receive FIFO depth                                 */
-	alt_u8		tse_use_mdio;                     /* is MDIO enabled                                       */
-	alt_u8		tse_en_maclite;                   /* is Small MAC                                          */
-	alt_u8		tse_maclite_gige;                 /* is Small MAC 1000 Mbps                                */
-	alt_u8		tse_multichannel_mac;             /* MAC group together for MDIO block sharing             */
-	alt_u8		tse_num_of_channel;               /* Number of channel for Multi-channel MAC               */
-	alt_u8		tse_mdio_shared;                  /* is MDIO block shared                                  */
-	alt_u8		tse_number_of_mac_mdio_shared;    /* Number of MAC sharing the MDIO block                  */
-	alt_u8		tse_pcs_ena;                      /* is MAC+PCS combination                                */
-	alt_u8		tse_pcs_sgmii;                    /* is SGMII mode of PCS enabled                          */
+    alt_u32        tse_mac_base;                     /* Base address of TSE MAC                               */
+    alt_u16        tse_tx_depth;                     /* TX Receive FIFO depth                                 */
+    alt_u16        tse_rx_depth;                     /* RX Receive FIFO depth                                 */
+    alt_u8        tse_use_mdio;                     /* is MDIO enabled                                       */
+    alt_u8        tse_en_maclite;                   /* is Small MAC                                          */
+    alt_u8        tse_maclite_gige;                 /* is Small MAC 1000 Mbps                                */
+    alt_u8        tse_multichannel_mac;             /* MAC group together for MDIO block sharing             */
+    alt_u8        tse_num_of_channel;               /* Number of channel for Multi-channel MAC               */
+    alt_u8        tse_mdio_shared;                  /* is MDIO block shared                                  */
+    alt_u8        tse_number_of_mac_mdio_shared;    /* Number of MAC sharing the MDIO block                  */
+    alt_u8        tse_pcs_ena;                      /* is MAC+PCS combination                                */
+    alt_u8        tse_pcs_sgmii;                    /* is SGMII mode of PCS enabled                          */
 } alt_tse_system_mac;
 
-typedef struct alt_tse_system_sgdma_struct {
-	char *		tse_sgdma_tx;				      /* SGDMA TX name                                         */
-	char *		tse_sgdma_rx;				      /* SGDMA RX name                                         */
-	alt_u16		tse_sgdma_rx_irq;			      /* SGDMA TX IRQ                                          */
-} alt_tse_system_sgdma;
+typedef struct alt_tse_system_msgdma_struct {
+    char *        tse_msgdma_tx;                      /* MSGDMA TX name                                         */
+    char *        tse_msgdma_rx;                      /* MSGDMA RX name                                         */
+    alt_u16        tse_msgdma_rx_irq;                  /* MSGDMA RX IRQ                                          */
+} alt_tse_system_msgdma;
 
 typedef struct alt_tse_system_desc_mem_struct {
-	alt_u8		ext_desc_mem;                     /* is dedicated memory used for descriptor               */
-	alt_u32		desc_mem_base;				      /* Base address of Descriptor Memory if ext_desc_mem = 1 */
+    alt_u8        ext_desc_mem;                     /* is dedicated memory used for descriptor               */
+    alt_u32        desc_mem_base;                      /* Base address of Descriptor Memory if ext_desc_mem = 1 */
 } alt_tse_system_desc_mem;
 
 typedef struct alt_tse_system_shared_fifo_struct {
-	alt_u8		use_shared_fifo;                  /* is Shared FIFO used in the system                     */
-	
-	alt_u32		tse_shared_fifo_tx_ctrl_base;     /* Base address of TX Shared FIFO Ctrl                   */
-	alt_u32		tse_shared_fifo_tx_stat_base;     /* Base address of TX Shared FIFO Fill Level             */
-	alt_u32		tse_shared_fifo_tx_depth;         /* Depth of TX Shared FIFO                               */
-	
-	alt_u32		tse_shared_fifo_rx_ctrl_base;     /* Base address of RX Shared FIFO Ctrl                   */
-	alt_u32		tse_shared_fifo_rx_stat_base;     /* Base address of RX Shared FIFO Fill Level             */
-	alt_u32		tse_shared_fifo_rx_depth;         /* Depth of RX Shared FIFO                               */
-	
+    alt_u8        use_shared_fifo;                  /* is Shared FIFO used in the system                     */
+    
+    alt_u32        tse_shared_fifo_tx_ctrl_base;     /* Base address of TX Shared FIFO Ctrl                   */
+    alt_u32        tse_shared_fifo_tx_stat_base;     /* Base address of TX Shared FIFO Fill Level             */
+    alt_u32        tse_shared_fifo_tx_depth;         /* Depth of TX Shared FIFO                               */
+    
+    alt_u32        tse_shared_fifo_rx_ctrl_base;     /* Base address of RX Shared FIFO Ctrl                   */
+    alt_u32        tse_shared_fifo_rx_stat_base;     /* Base address of RX Shared FIFO Fill Level             */
+    alt_u32        tse_shared_fifo_rx_depth;         /* Depth of RX Shared FIFO                               */
+    
 } alt_tse_system_shared_fifo;
 
 typedef struct alt_tse_system_phy_struct {
-	alt_32		tse_phy_mdio_address;		      /* PHY's MDIO address                                    */
-	alt_32		(*tse_phy_cfg)(np_tse_mac *pmac); /* Function pointer to execute additional initialization */
+    alt_32        tse_phy_mdio_address;              /* PHY's MDIO address                                    */
+    alt_32        (*tse_phy_cfg)(np_tse_mac *pmac); /* Function pointer to execute additional initialization */
 } alt_tse_system_phy;
 
 /* System Parameters for TSE System */
 typedef struct alt_tse_system_info_struct {
-	alt_u32		tse_mac_base;                     /* Base address of TSE MAC                               */
-	alt_u16		tse_tx_depth;                     /* TX Receive FIFO depth                                 */
-	alt_u16		tse_rx_depth;                     /* RX Receive FIFO depth                                 */
-	alt_u8		tse_use_mdio;                     /* is MDIO enabled                                       */
-	alt_u8		tse_en_maclite;                   /* is Small MAC                                          */
-	alt_u8		tse_maclite_gige;                 /* is Small MAC 1000 Mbps                                */
-	alt_u8		tse_multichannel_mac;             /* MAC group together for MDIO block sharing             */
-	alt_u8		tse_num_of_channel;               /* Number of channel for Multi-channel MAC               */
-	alt_u8		tse_mdio_shared;                  /* is MDIO block shared                                  */
-	alt_u8		tse_number_of_mac_mdio_shared;    /* Number of MAC sharing the MDIO block                  */
-	alt_u8		tse_pcs_ena;                      /* is MAC+PCS combination                                */
-	alt_u8		tse_pcs_sgmii;                    /* is SGMII mode of PCS enabled                          */
-		
-	char *		tse_sgdma_tx;                     /* SGDMA TX name                                         */
-	char *		tse_sgdma_rx;                     /* SGDMA RX name                                         */
-	alt_u16		tse_sgdma_rx_irq;                 /* SGDMA TX IRQ                                          */
-	
-	alt_u8		ext_desc_mem;                     /* is dedicated memory used for descriptor               */
-	alt_u32		desc_mem_base;                    /* Base address of Descriptor Memory if ext_desc_mem = 1 */
-	
-	alt_u8		use_shared_fifo;                  /* is Shared FIFO used in the system                     */
-	alt_u32		tse_shared_fifo_tx_ctrl_base;     /* Base address of TX Shared FIFO Ctrl                   */
-	alt_u32		tse_shared_fifo_tx_stat_base;     /* Base address of TX Shared FIFO Fill Level             */
-	alt_u32		tse_shared_fifo_tx_depth;         /* Depth of TX Shared FIFO                               */
-	
-	alt_u32		tse_shared_fifo_rx_ctrl_base;     /* Base address of RX Shared FIFO Ctrl                   */
-	alt_u32		tse_shared_fifo_rx_stat_base;     /* Base address of RX Shared FIFO Fill Level             */
-	alt_u32		tse_shared_fifo_rx_depth;         /* Depth of RX Shared FIFO                               */
-	
-	alt_32		tse_phy_mdio_address;             /* PHY's MDIO address                                    */
-	alt_32		(*tse_phy_cfg)(np_tse_mac *pmac); /* Function pointer to execute additional initialization */
+    alt_u32        tse_mac_base;                     /* Base address of TSE MAC                               */
+    alt_u32        tse_tx_depth;                     /* TX Receive FIFO depth                                 */
+    alt_u32        tse_rx_depth;                     /* RX Receive FIFO depth                                 */
+    alt_u8        tse_use_mdio;                     /* is MDIO enabled                                       */
+    alt_u8        tse_en_maclite;                   /* is Small MAC                                          */
+    alt_u8        tse_maclite_gige;                 /* is Small MAC 1000 Mbps                                */
+    alt_u8        tse_multichannel_mac;             /* MAC group together for MDIO block sharing             */
+    alt_u8        tse_num_of_channel;               /* Number of channel for Multi-channel MAC               */
+    alt_u8        tse_mdio_shared;                  /* is MDIO block shared                                  */
+    alt_u8        tse_number_of_mac_mdio_shared;    /* Number of MAC sharing the MDIO block                  */
+    alt_u8        tse_pcs_ena;                      /* is MAC+PCS combination                                */
+    alt_u8        tse_pcs_sgmii;                    /* is SGMII mode of PCS enabled                          */
+        
+    char *        tse_msgdma_tx;                     /* MSGDMA TX name                                         */
+    char *        tse_msgdma_rx;                     /* MSGDMA RX name                                         */
+    alt_u16        tse_msgdma_rx_irq;                 /* MSGDMA TX IRQ                                          */
+    
+    alt_u8        ext_desc_mem;                     /* is dedicated memory used for descriptor               */
+    alt_u32        desc_mem_base;                    /* Base address of Descriptor Memory if ext_desc_mem = 1 */
+    
+    alt_u8        use_shared_fifo;                  /* is Shared FIFO used in the system                     */
+    alt_u32        tse_shared_fifo_tx_ctrl_base;     /* Base address of TX Shared FIFO Ctrl                   */
+    alt_u32        tse_shared_fifo_tx_stat_base;     /* Base address of TX Shared FIFO Fill Level             */
+    alt_u32        tse_shared_fifo_tx_depth;         /* Depth of TX Shared FIFO                               */
+    
+    alt_u32        tse_shared_fifo_rx_ctrl_base;     /* Base address of RX Shared FIFO Ctrl                   */
+    alt_u32        tse_shared_fifo_rx_stat_base;     /* Base address of RX Shared FIFO Fill Level             */
+    alt_u32        tse_shared_fifo_rx_depth;         /* Depth of RX Shared FIFO                               */
+    
+    alt_32        tse_phy_mdio_address;             /* PHY's MDIO address                                    */
+    alt_32        (*tse_phy_cfg)(np_tse_mac *pmac); /* Function pointer to execute additional initialization */
     
 } alt_tse_system_info;
 
@@ -520,24 +531,24 @@ typedef struct alt_tse_phy_profile_struct{
     /* Function pointer to execute additional initialization */
     /* Profile specific */
     alt_32 (*phy_cfg)(np_tse_mac *pmac);
-	
-	/** Function pointer to read the link status from the PHY specific status register 
-	  * Use this function pointer if the PHY is using different format to store link information in PHY specific status register
-	  * The above _location variable will not be used if this function pointer is not NULL
-	  * Table below show the format of the return value required by TSE driver PHY detection
-	  * ----------------------------------------------------------------------------------
-	  * |  BIT  | Value: Description                                                     |
-	  * ----------------------------------------------------------------------------------
-	  * | 31-17 | Reserved                                                               |
-	  * |   16  | 1: Error:Invalid speed read from PHY                                   |
-	  * | 15- 4 | Reserved                                                               |
-	  * |    3  | 1: 10 Mbps link                                                        |
-	  * |    2  | 1: 100 Mbps link                                                       |
-	  * |    1  | 1: 1000 Mbps link                                                      |
-	  * |    0  | 1: Full Duplex                    0: Half Duplex                       |
-	  * ----------------------------------------------------------------------------------
-	  */
-	alt_u32 (*link_status_read)(np_tse_mac *pmac);
+    
+    /** Function pointer to read the link status from the PHY specific status register 
+      * Use this function pointer if the PHY is using different format to store link information in PHY specific status register
+      * The above _location variable will not be used if this function pointer is not NULL
+      * Table below show the format of the return value required by TSE driver PHY detection
+      * ----------------------------------------------------------------------------------
+      * |  BIT  | Value: Description                                                     |
+      * ----------------------------------------------------------------------------------
+      * | 31-17 | Reserved                                                               |
+      * |   16  | 1: Error:Invalid speed read from PHY                                   |
+      * | 15- 4 | Reserved                                                               |
+      * |    3  | 1: 10 Mbps link                                                        |
+      * |    2  | 1: 100 Mbps link                                                       |
+      * |    1  | 1: 1000 Mbps link                                                      |
+      * |    0  | 1: Full Duplex                    0: Half Duplex                       |
+      * ----------------------------------------------------------------------------------
+      */
+    alt_u32 (*link_status_read)(np_tse_mac *pmac);
     
 } alt_tse_phy_profile;
 
@@ -651,29 +662,29 @@ alt_32 alt_tse_phy_add_profile(alt_tse_phy_profile *phy);
 /* @Function Description - Add TSE System to tse_mac_device[] array to customize TSE System
  * 
  * @API TYPE - Public
- * @param		psys_mac  pointer to alt_tse_system_mac structure describing MAC of the system
- * @param		psys_sgdma  pointer to alt_tse_system_sgdma structure describing SGDMA of the system
- * @param		psys_mem  pointer to alt_tse_system_desc_mem structure describing Descriptor Memory of the system
- * @param		psys_phy  pointer to alt_tse_system_phy structure describing PHY of the system
+ * @param        psys_mac  pointer to alt_tse_system_mac structure describing MAC of the system
+ * @param        psys_msgdma  pointer to alt_tse_system_msgdma structure describing SGDMA of the system
+ * @param        psys_mem  pointer to alt_tse_system_desc_mem structure describing Descriptor Memory of the system
+ * @param        psys_phy  pointer to alt_tse_system_phy structure describing PHY of the system
  * @return      SUCCESS on success
- * 				ALTERA_TSE_MALLOC_FAILED if memory allocation failed
- * 				ALTERA_TSE_SYSTEM_DEF_ERROR if definition of system incorrect or pointer == NULL
+ *                 ALTERA_TSE_MALLOC_FAILED if memory allocation failed
+ *                 ALTERA_TSE_SYSTEM_DEF_ERROR if definition of system incorrect or pointer == NULL
  */
 alt_32 alt_tse_system_add_sys(
-	alt_tse_system_mac					*psys_mac,
-	alt_tse_system_sgdma				*psys_sgdma,
-	alt_tse_system_desc_mem				*psys_mem,
-	alt_tse_system_shared_fifo			*psys_shared_fifo,
-	alt_tse_system_phy 					*psys_phy );
+    alt_tse_system_mac                    *psys_mac,
+    alt_tse_system_msgdma                *psys_msgdma,
+    alt_tse_system_desc_mem                *psys_mem,
+    alt_tse_system_shared_fifo            *psys_shared_fifo,
+    alt_tse_system_phy                     *psys_phy );
 
 
 /* @Function Description - Enable MDIO sharing for multiple single channel MAC
  * 
  * @API TYPE - Public
- * @param		psys_mac_list  pointer to array of alt_tse_system_mac structure sharing MDIO block
- * @param		number_of_mac  number of MAC sharing MDIO block
+ * @param        psys_mac_list  pointer to array of alt_tse_system_mac structure sharing MDIO block
+ * @param        number_of_mac  number of MAC sharing MDIO block
  * @return      SUCCESS on success
- * 				ALTERA_TSE_SYSTEM_DEF_ERROR if definition of system incorrect or pointer == NULL
+ *                 ALTERA_TSE_SYSTEM_DEF_ERROR if definition of system incorrect or pointer == NULL
  * Multi-channel MAC not supported
  */
 alt_32 alt_tse_sys_enable_mdio_sharing(alt_tse_system_mac **psys_mac_list, alt_u8 number_of_mac);
@@ -967,6 +978,12 @@ alt_32 alt_tse_phy_set_common_speed(alt_tse_mac_group *pmac_group, alt_32 common
  */
 alt_32 marvell_phy_cfg(np_tse_mac *pmac);
 
+/* @Function Description: Additional configuration for PEF7071 PHY
+ * @API Type:   Internal
+ * @param pmac  Pointer to the first TSE MAC Control Interface Base address of MAC group
+ */
+alt_32 PEF7071_config(np_tse_mac *pmac);
+
 /* @Function Description: Change operating mode of Marvell PHY to GMII
  * @API Type:   Internal
  * @param pmac  Pointer to the first TSE MAC Control Interface Base address within MAC group
@@ -990,6 +1007,13 @@ alt_32 marvell_cfg_rgmii(np_tse_mac *pmac);
  * @param pmac  Pointer to the first TSE MAC Control Interface Base address within MAC group
  */
 alt_u32 DP83848C_link_status_read(np_tse_mac *pmac);
+
+/* @Function Description: Read link status from PHY specific status register of PEF7071
+ * @API Type:   Internal
+ * @param pmac  Pointer to the first TSE MAC Control Interface Base address within MAC group
+ */
+alt_u32 PEF7071_link_status_read(np_tse_mac *pmac);
+
 
 #ifdef __cplusplus
 }
