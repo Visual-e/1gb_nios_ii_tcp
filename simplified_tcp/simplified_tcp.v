@@ -83,49 +83,49 @@ module simplified_tcp(  // module and port declaration: fill the gaps
 	
 	// Transmission Clock in FPGA (TSE IP core)
 	//assign tx_clk1 = 5;
-	assign tx_clk = eth_mode  ? clk_125 : ena_10 ? clk_2p5 : clk_25 ;       		// GbE Mode   = 125MHz clock
-                                                                                 //               ena_10?  :      
-                                                                                 // 10Mb Mode  = 2.5MHz clock
-															                                    //                        ;         
-																											// 100Mb Mode = 25 MHz clock
+	assign tx_clk = eth_mode  ? clk_125 : ena_10 ? clk_2p5 : clk_25 ;       	// GbE Mode   = 125MHz clock
+                                                                                //               ena_10?  :      
+                                                                                // 10Mb Mode  = 2.5MHz clock
+															                    //                        ;         
+																				// 100Mb Mode = 25 MHz clock
 	                          
 	// Clock for transmission in PHY chip
 	//assign gtx_clk1 = ;
-	assign ENET_GTX_CLK= eth_mode ? clk1_125 : ena_10 ? clk1_2p5 : clk1_25;       // GbE Mode   = 125MHz clock
-																			                        //      ena_10?  :      
-																											// 10Mb Mode  = 2.5MHz clock
-																		                           //               ;         
-																											// 100Mb Mode = 25 MHz clock
+	assign ENET_GTX_CLK= eth_mode ? clk1_125 : ena_10 ? clk1_2p5 : clk1_25;     // GbE Mode   = 125MHz clock
+																			    //      ena_10?  :      
+																				// 10Mb Mode  = 2.5MHz clock
+																		        //               ;         
+																				// 100Mb Mode = 25 MHz clock
 
 	// Nios II system instance
 	
     nios_system system_inst (
-   .clk_clk                                (sys_clk),                     			// system clock (input)
-   .led_export                             (S1_LED),										// led (output)
-   .new_sdram_controller_0_wire_addr       (addr),                               // new_sdram_controller_0_wire.addr
-   .new_sdram_controller_0_wire_ba         (ba),                                 // new_sdram_controller_0_wire.ba
-   .new_sdram_controller_0_wire_cas_n      (cas_n),                              // new_sdram_controller_0_wire.cas_n
-   .new_sdram_controller_0_wire_cke        (),                                   // new_sdram_controller_0_wire.cke
-   .new_sdram_controller_0_wire_cs_n       (),                                   // new_sdram_controller_0_wire.cs_n
-   .new_sdram_controller_0_wire_dq         (dq),                                 // new_sdram_controller_0_wire.dq
-   .new_sdram_controller_0_wire_dqm        (dqm),                                // new_sdram_controller_0_wire.dqm
-   .new_sdram_controller_0_wire_ras_n      (ras_n),                              // new_sdram_controller_0_wire.ras_n
-   .new_sdram_controller_0_wire_we_n       (we_n),                               // new_sdram_controller_0_wire.we_n
-   .reset_reset_n                          (core_reset_n),     						// system reset (input)
-   .switch_export                          (KEY),      									// swicht button (input)
-   .tse_mac_mdio_connection_mdc            (mdc),             					      // mdc (output)
-   .tse_mac_mdio_connection_mdio_in        (mdio_in),           				      // mdio_in (input)
-   .tse_mac_mdio_connection_mdio_out       (mdio_out),          				      // mdio_out (output)
-   .tse_mac_mdio_connection_mdio_oen       (mdio_oen),     	     				      // mdio_oen (output)
-   .tse_mac_rgmii_connection_rgmii_in      (ENET_RX_DATA),     					   // rgmii_in (rx data, input)
-   .tse_mac_rgmii_connection_rgmii_out     (ENET_TX_DATA),	   				      // gmii_out (tx data, output)
-   .tse_mac_rgmii_connection_rx_control    (ENET_RX_DV),      					      // rx_control (receive data valid, input)
-   .tse_mac_rgmii_connection_tx_control    (ENET_TX_EN),      					      // tx_control (tx enable, output)
-	.tse_mac_status_connection_set_10       (),                                   // tse_mac_status_connection.set_10
-	.tse_mac_status_connection_set_1000     (),                                   // set_1000
+   .clk_clk                                (sys_clk),                     		// system clock (input)
+   .led_export                             (S1_LED),							// led (output)
+   .new_sdram_controller_0_wire_addr       (addr),                              // new_sdram_controller_0_wire.addr
+   .new_sdram_controller_0_wire_ba         (ba),                                // new_sdram_controller_0_wire.ba
+   .new_sdram_controller_0_wire_cas_n      (cas_n),                             // new_sdram_controller_0_wire.cas_n
+   .new_sdram_controller_0_wire_cke        (),                                  // new_sdram_controller_0_wire.cke
+   .new_sdram_controller_0_wire_cs_n       (),                                  // new_sdram_controller_0_wire.cs_n
+   .new_sdram_controller_0_wire_dq         (dq),                                // new_sdram_controller_0_wire.dq
+   .new_sdram_controller_0_wire_dqm        (dqm),                               // new_sdram_controller_0_wire.dqm
+   .new_sdram_controller_0_wire_ras_n      (ras_n),                             // new_sdram_controller_0_wire.ras_n
+   .new_sdram_controller_0_wire_we_n       (we_n),                              // new_sdram_controller_0_wire.we_n
+   .reset_reset_n                          (core_reset_n),     					// system reset (input)
+   .switch_export                          (KEY),      							// swicht button (input)
+   .tse_mac_mdio_connection_mdc            (mdc),             					// mdc (output)
+   .tse_mac_mdio_connection_mdio_in        (mdio_in),           				// mdio_in (input)
+   .tse_mac_mdio_connection_mdio_out       (mdio_out),          				// mdio_out (output)
+   .tse_mac_mdio_connection_mdio_oen       (mdio_oen),     	     				// mdio_oen (output)
+   .tse_mac_rgmii_connection_rgmii_in      (ENET_RX_DATA),     					// rgmii_in (rx data, input)
+   .tse_mac_rgmii_connection_rgmii_out     (ENET_TX_DATA),	   				    // gmii_out (tx data, output)
+   .tse_mac_rgmii_connection_rx_control    (ENET_RX_DV),      					// rx_control (receive data valid, input)
+   .tse_mac_rgmii_connection_tx_control    (ENET_TX_EN),      					// tx_control (tx enable, output)
+   .tse_mac_status_connection_set_10       (),                                  // tse_mac_status_connection.set_10
+   .tse_mac_status_connection_set_1000     (),                                  // set_1000
    .tse_mac_status_connection_eth_mode     (eth_mode),	                        // eth_mode (output)
-   .tse_mac_status_connection_ena_10       (ena_10),          	                  // ena_10 (output)
-   .tse_pcs_mac_rx_clock_connection_clk 	 (ENET_RX_CLK),		 					   // receive clock (input)
-   .tse_pcs_mac_tx_clock_connection_clk 	 (tx_clk) 								      // transmit clock (input)
+   .tse_mac_status_connection_ena_10       (ena_10),          	                // ena_10 (output)
+   .tse_pcs_mac_rx_clock_connection_clk 	 (ENET_RX_CLK),		 				// receive clock (input)
+   .tse_pcs_mac_tx_clock_connection_clk 	 (tx_clk) 							// transmit clock (input)
     );
 endmodule 
