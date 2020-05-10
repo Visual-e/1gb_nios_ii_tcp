@@ -9,8 +9,7 @@ obj/alt_sys_init.o: alt_sys_init.c system.h linker.h \
  HAL/inc/sys/alt_llist.h HAL/inc/priv/alt_dev_llist.h \
  drivers/inc/altera_avalon_sgdma.h \
  drivers/inc/altera_avalon_sgdma_descriptor.h \
- drivers/inc/altera_avalon_timer.h drivers/inc/altera_eth_tse.h \
- drivers/inc/altera_hostfs.h drivers/inc/altera_ro_zipfs.h
+ drivers/inc/altera_avalon_timer.h drivers/inc/altera_eth_tse.h
 
 system.h:
 
@@ -59,7 +58,3 @@ drivers/inc/altera_avalon_sgdma_descriptor.h:
 drivers/inc/altera_avalon_timer.h:
 
 drivers/inc/altera_eth_tse.h:
-
-drivers/inc/altera_hostfs.h:
-
-drivers/inc/altera_ro_zipfs.h:

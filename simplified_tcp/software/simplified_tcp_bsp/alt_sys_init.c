@@ -2,9 +2,9 @@
  * alt_sys_init.c - HAL initialization source
  *
  * Machine generated for CPU 'nios2' in SOPC Builder design 'nios_system'
- * SOPC Builder design path: ../../nios_system.sopcinfo
+ * SOPC Builder design path: D:/projects/prj_fpga_altera/prj_VE-10CL025/cl025_prj/projects/1gb_nios_ii_tcp/nios_system.sopcinfo
  *
- * Generated: Thu Feb 06 22:37:12 YEKT 2020
+ * Generated: Sun Feb 23 01:13:01 YEKT 2020
  */
 
 /*
@@ -63,8 +63,6 @@
 #include "altera_avalon_sgdma.h"
 #include "altera_avalon_timer.h"
 #include "altera_eth_tse.h"
-#include "altera_hostfs.h"
-#include "altera_ro_zipfs.h"
 
 /*
  * Allocate the device storage
@@ -76,8 +74,6 @@ ALTERA_AVALON_SGDMA_INSTANCE ( SGDMA_RX, sgdma_rx);
 ALTERA_AVALON_SGDMA_INSTANCE ( SGDMA_TX, sgdma_tx);
 ALTERA_AVALON_TIMER_INSTANCE ( TIMER_0, timer_0);
 ALTERA_ETH_TSE_INSTANCE ( TSE, tse);
-ALTERA_HOSTFS_INSTANCE ( ALTERA_HOSTFS, altera_hostfs);
-ALTERA_RO_ZIPFS_INSTANCE ( ALTERA_RO_ZIPFS, altera_ro_zipfs);
 
 /*
  * Initialize the interrupt controller devices
@@ -105,6 +101,4 @@ void alt_sys_init( void )
     ALTERA_AVALON_SGDMA_INIT ( SGDMA_RX, sgdma_rx);
     ALTERA_AVALON_SGDMA_INIT ( SGDMA_TX, sgdma_tx);
     ALTERA_ETH_TSE_INIT ( TSE, tse);
-    ALTERA_HOSTFS_INIT ( ALTERA_HOSTFS, altera_hostfs);
-    ALTERA_RO_ZIPFS_INIT ( ALTERA_RO_ZIPFS, altera_ro_zipfs);
 }

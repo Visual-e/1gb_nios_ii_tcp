@@ -42,7 +42,7 @@ set_global_assignment -name DEVICE 10CL025YE144I7G
 set_global_assignment -name TOP_LEVEL_ENTITY simplified_tcp
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 15.0.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "14:13:24  DECEMBER 02, 2016"
-set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "19.1.0 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP "-40"
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 100
@@ -55,11 +55,6 @@ set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
-set_global_assignment -name QSYS_FILE nios_system.qsys
-set_global_assignment -name QIP_FILE pll_clock_PHY1.qip
-set_global_assignment -name QIP_FILE my_pll.qip
-set_global_assignment -name VERILOG_FILE simplified_tcp.v
-set_global_assignment -name SDC_FILE nios_system/synthesis/simplified_tcp.sdc
 set_location_assignment PIN_23 -to CLOCK_50
 set_location_assignment PIN_114 -to ENET_GTX_CLK
 set_location_assignment PIN_112 -to ENET_MDC
@@ -107,4 +102,12 @@ set_location_assignment PIN_53 -to KEY[3]
 set_location_assignment PIN_52 -to KEY[2]
 set_location_assignment PIN_25 -to KEY[1]
 set_location_assignment PIN_24 -to KEY[0]
+set_global_assignment -name ENABLE_SIGNALTAP ON
+set_global_assignment -name USE_SIGNALTAP_FILE eth_rx.stp
+set_global_assignment -name QSYS_FILE nios_system.qsys
+set_global_assignment -name QIP_FILE pll_clock_PHY1.qip
+set_global_assignment -name QIP_FILE my_pll.qip
+set_global_assignment -name VERILOG_FILE simplified_tcp.v
+set_global_assignment -name SDC_FILE nios_system/synthesis/simplified_tcp.sdc
+set_global_assignment -name QIP_FILE in_buf.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

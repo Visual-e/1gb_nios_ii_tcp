@@ -1,16 +1,16 @@
-Fitter Status : Successful - Mon Feb 10 23:06:24 2020
-Quartus Prime Version : 18.1.0 Build 625 09/12/2018 SJ Lite Edition
+Fitter Status : Successful - Sun May 10 21:05:21 2020
+Quartus Prime Version : 19.1.0 Build 670 09/22/2019 SJ Lite Edition
 Revision Name : simplified_tcp
 Top-level Entity Name : simplified_tcp
 Family : Cyclone 10 LP
 Device : 10CL025YE144I7G
 Timing Models : Final
-Total logic elements : 9,175 / 24,624 ( 37 % )
-    Total combinational functions : 6,908 / 24,624 ( 28 % )
-    Dedicated logic registers : 6,657 / 24,624 ( 27 % )
-Total registers : 6708
+Total logic elements : 11,766 / 24,624 ( 48 % )
+    Total combinational functions : 8,344 / 24,624 ( 34 % )
+    Dedicated logic registers : 8,978 / 24,624 ( 36 % )
+Total registers : 9029
 Total pins : 55 / 77 ( 71 % )
 Total virtual pins : 0
-Total memory bits : 301,672 / 608,256 ( 50 % )
+Total memory bits : 347,456 / 608,256 ( 57 % )
 Embedded Multiplier 9-bit elements : 0 / 132 ( 0 % )
 Total PLLs : 2 / 4 ( 50 % )

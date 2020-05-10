@@ -1,4 +1,4 @@
-// (C) 2001-2018 Intel Corporation. All rights reserved.
+// (C) 2001-2019 Intel Corporation. All rights reserved.
 // Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files from any of the foregoing (including device programming or simulation 
@@ -11,9 +11,9 @@
 // agreement for further details.
 
 
-// $Id: //acds/rel/18.1std/ip/merlin/altera_merlin_demultiplexer/altera_merlin_demultiplexer.sv.terp#1 $
+// $Id: //acds/rel/19.1std/ip/merlin/altera_merlin_demultiplexer/altera_merlin_demultiplexer.sv.terp#1 $
 // $Revision: #1 $
-// $Date: 2018/07/18 $
+// $Date: 2018/11/07 $
 // $Author: psgswbuild $
 
 // -------------------------------------
@@ -30,7 +30,7 @@
 //   output_name:         nios_system_mm_interconnect_0_rsp_demux_005
 //   ST_DATA_W:           110
 //   ST_CHANNEL_W:        11
-//   NUM_OUTPUTS:         4
+//   NUM_OUTPUTS:         3
 //   VALID_WIDTH:         1
 // ------------------------------------------
 
@@ -76,13 +76,6 @@ module nios_system_mm_interconnect_0_rsp_demux_005
     output reg                      src2_endofpacket,
     input                           src2_ready,
 
-    output reg                      src3_valid,
-    output reg [110-1    : 0] src3_data, // ST_DATA_W=110
-    output reg [11-1 : 0] src3_channel, // ST_CHANNEL_W=11
-    output reg                      src3_startofpacket,
-    output reg                      src3_endofpacket,
-    input                           src3_ready,
-
 
     // -------------------
     // Clock & Reset
@@ -94,7 +87,7 @@ module nios_system_mm_interconnect_0_rsp_demux_005
 
 );
 
-    localparam NUM_OUTPUTS = 4;
+    localparam NUM_OUTPUTS = 3;
     wire [NUM_OUTPUTS - 1 : 0] ready_vector;
 
     // -------------------
@@ -122,13 +115,6 @@ module nios_system_mm_interconnect_0_rsp_demux_005
 
         src2_valid         = sink_channel[2] && sink_valid;
 
-        src3_data          = sink_data;
-        src3_startofpacket = sink_startofpacket;
-        src3_endofpacket   = sink_endofpacket;
-        src3_channel       = sink_channel >> NUM_OUTPUTS;
-
-        src3_valid         = sink_channel[3] && sink_valid;
-
     end
 
     // -------------------
@@ -137,9 +123,8 @@ module nios_system_mm_interconnect_0_rsp_demux_005
     assign ready_vector[0] = src0_ready;
     assign ready_vector[1] = src1_ready;
     assign ready_vector[2] = src2_ready;
-    assign ready_vector[3] = src3_ready;
 
-    assign sink_ready = |(sink_channel & {{7{1'b0}},{ready_vector[NUM_OUTPUTS - 1 : 0]}});
+    assign sink_ready = |(sink_channel & {{8{1'b0}},{ready_vector[NUM_OUTPUTS - 1 : 0]}});
 
 endmodule
 

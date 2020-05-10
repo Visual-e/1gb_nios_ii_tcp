@@ -1,6 +1,6 @@
 Assembler report for simplified_tcp
-Mon Feb 10 23:06:35 2020
-Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
+Sun May 10 21:05:32 2020
+Quartus Prime Version 19.1.0 Build 670 09/22/2019 SJ Lite Edition
 
 
 ---------------------
@@ -19,9 +19,9 @@ Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 ----------------
 ; Legal Notice ;
 ----------------
-Copyright (C) 2018  Intel Corporation. All rights reserved.
+Copyright (C) 2019  Intel Corporation. All rights reserved.
 Your use of Intel Corporation's design tools, logic functions 
-and other software and tools, and its AMPP partner logic 
+and other software and tools, and any partner logic 
 functions, and any output files from any of the foregoing 
 (including device programming or simulation files), and any 
 associated documentation or information are expressly subject 
@@ -31,14 +31,15 @@ the Intel FPGA IP License Agreement, or other applicable license
 agreement, including, without limitation, that your use is for
 the sole purpose of programming logic devices manufactured by
 Intel and sold by Intel or its authorized distributors.  Please
-refer to the applicable agreement for further details.
+refer to the applicable agreement for further details, at
+https://fpgasoftware.intel.com/eula.
 
 
 
 +---------------------------------------------------------------+
 ; Assembler Summary                                             ;
 +-----------------------+---------------------------------------+
-; Assembler Status      ; Successful - Mon Feb 10 23:06:35 2020 ;
+; Assembler Status      ; Successful - Sun May 10 21:05:32 2020 ;
 ; Revision Name         ; simplified_tcp                        ;
 ; Top-level Entity Name ; simplified_tcp                        ;
 ; Family                ; Cyclone 10 LP                         ;
@@ -78,8 +79,8 @@ refer to the applicable agreement for further details.
 +----------------+-------------------------------------------------------------------------------------------------------------------------------------+
 ; Option         ; Setting                                                                                                                             ;
 +----------------+-------------------------------------------------------------------------------------------------------------------------------------+
-; JTAG usercode  ; 0x006CD99E                                                                                                                          ;
-; Checksum       ; 0x006CD99E                                                                                                                          ;
+; JTAG usercode  ; 0x00834761                                                                                                                          ;
+; Checksum       ; 0x00834761                                                                                                                          ;
 +----------------+-------------------------------------------------------------------------------------------------------------------------------------+
 
 
@@ -88,8 +89,8 @@ refer to the applicable agreement for further details.
 +--------------------+
 Info: *******************************************************************
 Info: Running Quartus Prime Assembler
-    Info: Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
-    Info: Processing started: Mon Feb 10 23:06:30 2020
+    Info: Version 19.1.0 Build 670 09/22/2019 SJ Lite Edition
+    Info: Processing started: Sun May 10 21:05:27 2020
 Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off simplified_tcp -c simplified_tcp
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (115031): Writing out detailed assembly data for power analysis
@@ -97,9 +98,9 @@ Info (115030): Assembler is generating device programming files
 Info (115017): Design contains a time-limited core -- only a single, time-limited programming file can be generated
 Warning (210042): Can't convert time-limited SOF into POF, HEX File, TTF, or RBF
 Info: Quartus Prime Assembler was successful. 0 errors, 2 warnings
-    Info: Peak virtual memory: 4722 megabytes
-    Info: Processing ended: Mon Feb 10 23:06:36 2020
-    Info: Elapsed time: 00:00:06
+    Info: Peak virtual memory: 4728 megabytes
+    Info: Processing ended: Sun May 10 21:05:32 2020
+    Info: Elapsed time: 00:00:05
     Info: Total CPU time (on all processors): 00:00:05
 
 

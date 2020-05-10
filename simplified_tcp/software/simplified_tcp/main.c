@@ -1,5 +1,5 @@
 /*
- * tx_rx.c
+ * main.c
 
  *
  *  Created on: Dec 8, 2016
@@ -21,6 +21,7 @@
 #include <sys/alt_cache.h>
 #include <altera_avalon_timer.h>
 #include <altera_avalon_timer_regs.h>
+#include <altera_avalon_tse.h>
 
 /********* Initialize variables *****************/
 //uint8_t n = 0;
@@ -37,6 +38,38 @@ uint8_t data_flag;
 void statistics_counter();
 void rx_ethernet_isr (void *context);
 void create_pkt();
+
+void add_phy_to_profile()
+{
+
+/* supported PHY definition */
+
+/* ------------------------------ */
+/* KSZ9031                        */
+/* ------------------------------ */
+enum {
+KSZ9031_OUI = 0x10A1,
+KSZ9031_MODEL = 0x22,
+KSZ9031_REV = 0x02
+};
+
+alt_tse_phy_profile KSZ9031 = {
+            "KSZ9031",                      /* Micrel  KSZ9031                                              */
+            KSZ9031_OUI,                    /* OUI                                                          */
+            KSZ9031_MODEL,                  /* Vender Model Number                                          */
+            KSZ9031_REV,                    /* Model Revision Number                                        */
+            0x1F,                           /* Location of Status Register                                  */
+            5,                              /* Location of Speed Status                                     */
+            3,                              /* Location of Duplex Status                                    */
+            0                               /* Location of Link Status                                      */
+            /*&KSZ9031_phy_cfg,*/           /* function pointer to configure Micrel KSZ8893M                */
+            /*&KSZ9031_link_status_read*/   /* Function pointer to read from PHY specific status register   */
+            };
+
+/* add supported PHY to profile */
+alt_tse_phy_add_profile(&KSZ9031);
+}
+
 /*********** STRUCTS *******************************/
 struct tcp_conn {
 	uint8_t link;
@@ -49,8 +82,8 @@ struct tcp_conn {
 };
 
 /*********** Create a receive frame ****************/
-unsigned char rx_frame[64] = { 0 };
-unsigned char tx_frame[64] = { 0 };
+unsigned char rx_frame[1518] = { 0 };
+unsigned char tx_frame[1518] = { 0 };
 
 /************* Create sgdma transmit and receive devices **************/
 
@@ -68,6 +101,9 @@ alt_sgdma_descriptor rx_descriptor_end  __attribute__ (( section ( ".descriptor_
 
 struct tcp_conn TCP[2];
 
+/********************* Triple-sp **********************************************/
+volatile int *tse = (int *)TSE_BASE;
+
 /******* MAIN BLOCK STARTS HERE ********************************/
 
 int main(void){
@@ -79,8 +115,8 @@ int main(void){
 	IOWR_ALTERA_AVALON_TIMER_STATUS(TIMER_0_BASE, 0x0000);
 
 /****** copying TCP header values to structure ****************************/
-	memmove(&TCP[0].dest_mac,"\x00\x1C\x23\x17\x4A\xCA",6);
-	memmove(&TCP[0].source_mac,"\x00\x1C\x23\x17\x4A\xCB",6);
+	memmove(&TCP[0].dest_mac,"\x60\xe3\x27\x04\xd5\xe2",6);
+	memmove(&TCP[0].source_mac,"\x60\xe3\x27\x04\xd5\xe3",6);
 	memmove(&TCP[0].source_port, "\x00\x10", 2);
 	memmove(&TCP[0].dest_port, "\x00\x20", 2);
 	memmove(&TCP[0].seq_num, "\x00\x00", 2);
@@ -95,7 +131,6 @@ int main(void){
 	} else alt_printf ("Opened scatter-gather dma transmit device\n");
 
 /***********  Open the sgdma receive device *************************/
-
 	sgdma_rx_dev = alt_avalon_sgdma_open ("/dev/sgdma_rx");
 	if (sgdma_rx_dev == NULL) {
 		alt_printf ("Error: could not open scatter-gather dma receive device\n");
@@ -107,8 +142,7 @@ int main(void){
 	alt_avalon_sgdma_construct_stream_to_mem_desc( &rx_descriptor, &rx_descriptor_end, (alt_u32 *)rx_frame, 0, 0 );
 	alt_avalon_sgdma_do_async_transfer( sgdma_rx_dev, &rx_descriptor );
 
-/********************* Triple-sp **********************************************/
-	volatile int *tse = (int *)TSE_BASE;
+	add_phy_to_profile();
 
 	// Specify the addresses of the PHY devices to be accessed through MDIO interface
 	*(tse + 0x0F) = 0x00;
@@ -120,45 +154,71 @@ int main(void){
 		regPhy[i]=*(tse + 0x80 + i);
 		alt_printf("PHY %x : %x \n",i,regPhy[i]);
 	}
+
+	int phyid1 = regPhy[2];
+	int phyid2 = regPhy[3];
+
+	printf ("Phy found:id1 %x, id2 %x\n", phyid1, phyid2);
 /************ Disable read and write transfers and wait**************************/
 	*(tse + 0x02 ) = *(tse + 0x02) | 0x00800220;
-	while ( *(tse + 0x02 ) != ( *(tse + 0x02 ) | 0x00800220 ));
+	while ( *(tse + 0x02 ) != ( *(tse + 0x02 ) | 0x00800220 )) alt_printf("n0");
 
 /****************MAC FIFO Configuration*****************************************/
 	*(tse + 0x09) = TSE_TRANSMIT_FIFO_DEPTH-16;
-	*(tse + 0x0E) = 3 ;
+	*(tse + 0x0E) = 3;
 	*(tse + 0x0D) = 8;
 	*(tse + 0x07) =TSE_RECEIVE_FIFO_DEPTH-16;
-	*(tse + 0x0C) = 8 ;
-	*(tse + 0x0B) = 8 ;
+	*(tse + 0x0C) = 8;
+	*(tse + 0x0B) = 8;
 	*(tse + 0x0A) = 0;
 	*(tse + 0x08) = 0;
 
 /***************** Initialize the MAC address************************************/
-	*(tse + 0x03 ) = 0x17231C00  ; //mac_0
-	*(tse + 0x04) =  0x0000CB4A;  //mac_1
-
+	*(tse + 0x03 ) = 0x0427E360; //mac_0
+	*(tse + 0x04) =  0x0000E3D5; //mac_1
 /****************** MAC function configuration**********************************/
 	*(tse + 0x05) = 1518 ;
 	*(tse + 0x17) = 12;
 	*(tse + 0x06 ) = 0xFFFF;
 	*(tse + 0x02 ) = 0x00800220; //command config
 
-
 /*************** Software reset the PHY chip and wait***************************/
 	*(tse + 0x02  ) =  0x00802220;
-	while ( *(tse + 0x02  ) != ( 0x00800220 ) ) alt_printf("n");
+	while ( *(tse + 0x02  ) != ( 0x00800220 ) ) alt_printf("n1");
 
 /*** Enable read and write transfers, gigabit Ethernet operation and promiscuous mode*/
 
 	*(tse + 0x02 ) = *(tse + 0x02 ) | 0x0080023B;
-	while ( *(tse + 0x02 ) != ( *(tse + 0x02) | 0x0080023B ) ) alt_printf("m") ;
+	while ( *(tse + 0x02 ) != ( *(tse + 0x02) | 0x0080023B ) ) alt_printf("n2") ;
 
 
 	uint8_t data = 0x00;
 	uint8_t flag_a = 0;
 	int delay = 0;
 	int n; //variable to read timer status
+
+	//MMD register access example
+	//Write MMD - Device Address 2h, Register 10h = 0001h to enable link-up detection to trigger PME for WOL.
+	//1. Write Register Dh with 0002h // Set up register address for MMD – Device Address 2h.
+	//2. Write Register Eh with 0010h // Select Register 10h of MMD – Device Address 2h.
+	//3. Write Register Dh with 4002h // Select register data for MMD – Device Address 2h, Register 10h.
+	//4. Write Register Eh with 0001h // Write value 0001h to MMD – Device Address 2h, Register 10h.
+	*(tse + 0x80 + 0x0D)=0x0002;
+	*(tse + 0x80 + 0x0E)=0x0008;
+	*(tse + 0x80 + 0x0D)=0x4002;
+	*(tse + 0x80 + 0x0E)=0x01EF;
+	//Read MMD - Device Address 2h, Register 11h – 13h for the magic packet’s MAC address.
+	//1. Write Register Dh with 0002h // Set up register address for MMD – Device Address 2h.
+	//2. Write Register Eh with 0011h // Select Register 11h of MMD – Device Address 2h.
+	//3. Write Register Dh with 8002h // Select register data for MMD – Device Address 2h, Register 11h.
+	//4. Read Register Eh // Read data in MMD – Device Address 2h, Register 11h.
+	//5. Read Register Eh // Read data in MMD – Device Address 2h, Register 12h.
+	//6. Read Register Eh // Read data in MMD – Device Address 2h, Register 13h.
+	*(tse + 0x80 + 0x0D)=0x0002;
+	*(tse + 0x80 + 0x0E)=0x0008;
+	*(tse + 0x80 + 0x0D)=0x8002;
+	int txRxDelay=*(tse + 0x80 + 0x0E);
+	alt_printf("Tx Rx delay %x \n",txRxDelay);
 
 /********** Infinite Loop ******************************/
 	while (1) {
@@ -226,7 +286,7 @@ int main(void){
 		}
 
 	/********* condition to check DATA transmission if key 2 are ON *************/
-		if((in & 0x02) == 0x02){
+		if((in & 0x02) == 0x00){
 			delay++;
 	/***** setting delay to display LED blinking  *******************************/
 			if(data_flag == 1 && delay == 1000000){
@@ -298,7 +358,7 @@ void rx_ethernet_isr (void *context)
 
 /***** If key 3 is ON drop receiving packets ***************************************/
 
-	if((in & 0x04) == 0x04){
+	if((in & 0x04) == 0x00){
 			while (alt_avalon_sgdma_check_descriptor_status(&rx_descriptor) != 0);
 			// Create new receive sgdma descriptor
 			alt_avalon_sgdma_construct_stream_to_mem_desc( &rx_descriptor, &rx_descriptor_end, (alt_u32 *)rx_frame, 0, 0 );
@@ -306,8 +366,13 @@ void rx_ethernet_isr (void *context)
 			alt_avalon_sgdma_do_async_transfer( sgdma_rx_dev, &rx_descriptor );
 			return;
 	}
-
+    int sucessFrm;
+    int crcErrorFrm;
+    sucessFrm=*(tse+0x1B);
+    crcErrorFrm=*(tse+0x1C);
 	alt_printf("\nRX_FRAME: %x %x %x %x %x %x   %x %x %x %x %x %x    %x %x   %x %x   %x %x   %x %x   %x %x  %x  %x\n",rx_frame[2],rx_frame[3],rx_frame[4],rx_frame[5],rx_frame[6],rx_frame[7],rx_frame[8],rx_frame[9],rx_frame[10],rx_frame[11],rx_frame[12],rx_frame[13],rx_frame[14],rx_frame[15],rx_frame[16],rx_frame[17],rx_frame[18],rx_frame[19],rx_frame[20],rx_frame[21],rx_frame[22],rx_frame[23],rx_frame[24],rx_frame[25],rx_frame[26]);
+		alt_printf("Number of successful frames:%x\n",sucessFrm);
+	alt_printf("The number of receive frames with CRC error:%x\n",crcErrorFrm);
 	alt_dcache_flush_all();
 
 	IOWR_ALTERA_AVALON_TIMER_CONTROL(TIMER_0_BASE, 0x0008);

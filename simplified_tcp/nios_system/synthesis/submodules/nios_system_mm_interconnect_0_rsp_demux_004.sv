@@ -1,4 +1,4 @@
-// (C) 2001-2018 Intel Corporation. All rights reserved.
+// (C) 2001-2019 Intel Corporation. All rights reserved.
 // Your use of Intel Corporation's design tools, logic functions and other 
 // software and tools, and its AMPP partner logic functions, and any output 
 // files from any of the foregoing (including device programming or simulation 
@@ -11,9 +11,9 @@
 // agreement for further details.
 
 
-// $Id: //acds/rel/18.1std/ip/merlin/altera_merlin_demultiplexer/altera_merlin_demultiplexer.sv.terp#1 $
+// $Id: //acds/rel/19.1std/ip/merlin/altera_merlin_demultiplexer/altera_merlin_demultiplexer.sv.terp#1 $
 // $Revision: #1 $
-// $Date: 2018/07/18 $
+// $Date: 2018/11/07 $
 // $Author: psgswbuild $
 
 // -------------------------------------
@@ -28,7 +28,7 @@
 // ------------------------------------------
 // Generation parameters:
 //   output_name:         nios_system_mm_interconnect_0_rsp_demux_004
-//   ST_DATA_W:           110
+//   ST_DATA_W:           113
 //   ST_CHANNEL_W:        11
 //   NUM_OUTPUTS:         2
 //   VALID_WIDTH:         1
@@ -46,7 +46,7 @@ module nios_system_mm_interconnect_0_rsp_demux_004
     // Sink
     // -------------------
     input  [1-1      : 0]   sink_valid,
-    input  [110-1    : 0]   sink_data, // ST_DATA_W=110
+    input  [113-1    : 0]   sink_data, // ST_DATA_W=113
     input  [11-1 : 0]   sink_channel, // ST_CHANNEL_W=11
     input                         sink_startofpacket,
     input                         sink_endofpacket,
@@ -56,14 +56,14 @@ module nios_system_mm_interconnect_0_rsp_demux_004
     // Sources 
     // -------------------
     output reg                      src0_valid,
-    output reg [110-1    : 0] src0_data, // ST_DATA_W=110
+    output reg [113-1    : 0] src0_data, // ST_DATA_W=113
     output reg [11-1 : 0] src0_channel, // ST_CHANNEL_W=11
     output reg                      src0_startofpacket,
     output reg                      src0_endofpacket,
     input                           src0_ready,
 
     output reg                      src1_valid,
-    output reg [110-1    : 0] src1_data, // ST_DATA_W=110
+    output reg [113-1    : 0] src1_data, // ST_DATA_W=113
     output reg [11-1 : 0] src1_channel, // ST_CHANNEL_W=11
     output reg                      src1_startofpacket,
     output reg                      src1_endofpacket,

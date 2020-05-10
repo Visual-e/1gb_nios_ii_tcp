@@ -1,9 +1,9 @@
 # memory.gdb - GDB memory region definitions
 #
 # Machine generated for CPU 'nios2' in SOPC Builder design 'nios_system'
-# SOPC Builder design path: ../../nios_system.sopcinfo
+# SOPC Builder design path: D:/projects/prj_fpga_altera/prj_VE-10CL025/cl025_prj/projects/1gb_nios_ii_tcp/nios_system.sopcinfo
 #
-# Generated: Sun Feb 09 14:40:30 YEKT 2020
+# Generated: Sun May 10 16:05:38 YEKT 2020
 
 # DO NOT MODIFY THIS FILE
 #
@@ -47,10 +47,7 @@
 # by allowing GDB to cache memory contents on the host.
 
 # new_sdram_controller_0
-memory 0x0 0x1000000 cache
-
-# main_memory
-memory 0x1008000 0x100c000 cache
+memory 0x1000000 0x2000000 cache
 
 # descriptor_memory
-memory 0x1010000 0x1010200 cache
+memory 0x2000000 0x2001000 cache

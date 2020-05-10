@@ -2,9 +2,9 @@
  * linker.h - Linker script mapping information
  *
  * Machine generated for CPU 'nios2' in SOPC Builder design 'nios_system'
- * SOPC Builder design path: ../../nios_system.sopcinfo
+ * SOPC Builder design path: D:/projects/prj_fpga_altera/prj_VE-10CL025/cl025_prj/projects/1gb_nios_ii_tcp/nios_system.sopcinfo
  *
- * Generated: Sun Feb 09 14:40:30 YEKT 2020
+ * Generated: Sun May 10 16:05:38 YEKT 2020
  */
 
 /*
@@ -65,13 +65,11 @@
  *
  */
 
-#define DESCRIPTOR_MEMORY_REGION_BASE 0x1010000
-#define DESCRIPTOR_MEMORY_REGION_SPAN 512
-#define MAIN_MEMORY_REGION_BASE 0x1008020
-#define MAIN_MEMORY_REGION_SPAN 16352
-#define NEW_SDRAM_CONTROLLER_0_REGION_BASE 0x0
-#define NEW_SDRAM_CONTROLLER_0_REGION_SPAN 16777216
-#define RESET_REGION_BASE 0x1008000
+#define DESCRIPTOR_MEMORY_REGION_BASE 0x2000000
+#define DESCRIPTOR_MEMORY_REGION_SPAN 4096
+#define NEW_SDRAM_CONTROLLER_0_REGION_BASE 0x1000020
+#define NEW_SDRAM_CONTROLLER_0_REGION_SPAN 16777184
+#define RESET_REGION_BASE 0x1000000
 #define RESET_REGION_SPAN 32
 
 
@@ -80,10 +78,10 @@
  *
  */
 
-#define ALT_EXCEPTIONS_DEVICE MAIN_MEMORY
-#define ALT_RESET_DEVICE MAIN_MEMORY
-#define ALT_RODATA_DEVICE MAIN_MEMORY
-#define ALT_RWDATA_DEVICE MAIN_MEMORY
+#define ALT_EXCEPTIONS_DEVICE NEW_SDRAM_CONTROLLER_0
+#define ALT_RESET_DEVICE NEW_SDRAM_CONTROLLER_0
+#define ALT_RODATA_DEVICE NEW_SDRAM_CONTROLLER_0
+#define ALT_RWDATA_DEVICE NEW_SDRAM_CONTROLLER_0
 #define ALT_TEXT_DEVICE NEW_SDRAM_CONTROLLER_0
 
 
@@ -100,6 +98,7 @@
  *
  */
 
+#define ALT_LOAD_COPY_EXCEPTIONS
 #define ALT_LOAD_COPY_RWDATA
 
 #endif /* __LINKER_H_ */

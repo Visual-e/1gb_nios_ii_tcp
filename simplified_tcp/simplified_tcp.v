@@ -19,18 +19,18 @@ module simplified_tcp(  // module and port declaration: fill the gaps
 	//the receive data valid, 
 	//the transmit data and 
 	//the transmit enable (check the manual)
-	output ENET_GTX_CLK,
-	output ENET_MDC,
+	output ENET_GTX_CLK,	
 	input ENET_RX_CLK,
+	output ENET_MDC,
 	inout ENET_MDIO,	
 	//input ENET_TX_CLK, 
-	output  [3:0] ENET_TX_DATA,
-	output   ENET_RST_N,
-	input [3:0] ENET_RX_DATA,
-	input  ENET_RX_DV,
-	output ENET_TX_EN,
+	output  [3:0]ENET_TX_DATA,
+	output  ENET_RST_N,
+	input   [3:0]ENET_RX_DATA,
+	input   ENET_RX_DV,
+	output  ENET_TX_EN,
 	//sdram memory
-	inout [7:0]dq,
+	inout  [7:0]dq,
 	output [11:0]addr,
 	output [1:0]ba,
 	output cas_n,
@@ -40,26 +40,35 @@ module simplified_tcp(  // module and port declaration: fill the gaps
 	output clk_n
 );
 
-	wire sys_clk, clk_125, clk_25, clk_2p5, tx_clk;
+	wire sys_clk, clk_125, clk_25, clk_2p5;
 	wire clk_sdram,clk1_125,clk1_25,clk1_2p5;
+	wire rx_clk, tx_clk;
 	wire core_reset_n;
 	wire mdc, mdio_in, mdio_oen, mdio_out;
 	wire eth_mode, ena_10;
-	//wire tx_clk1,gtk_clk1;
-
-	// Assign MDIO and MDC signals
+	wire chpScpClk; 
 	
+	wire [3:0]ENET_RX_DATA_BUF;
+		
+   assign rx_clk = ENET_RX_CLK;
+ 
+	// Assign MDIO and MDC signals	
 	assign mdio_in   = ENET_MDIO;
 	assign ENET_MDC  = mdc;
 	assign ENET_MDIO = mdio_oen ? 1'bz : mdio_out;
 	
-	//Assign reset
-	
+	//Assign reset	
 	assign ENET_RST_N = core_reset_n;
 	
 	//Assign SDRAM CLK
 	assign clk_n = clk_sdram; 
 	
+	//BUF instances
+	in_buf	in_buf_inst (
+	.datain ( ENET_RX_DATA ),
+	.dataout ( ENET_RX_DATA_BUF )
+	);
+		
 	//PLL instances
 	
 	my_pll pll_inst(
@@ -75,23 +84,24 @@ module simplified_tcp(  // module and port declaration: fill the gaps
 	pll_clock_PHY1 pll_inst1(
  .areset	(1'b0),
  .inclk0	(CLOCK_50),
- .c0      (clk_sdram),
+ .c0 (clk_sdram),
  .c1 (clk1_125),
  .c2 (clk1_25),
  .c3 (clk1_2p5)
 	); 
 	
+
 	// Transmission Clock in FPGA (TSE IP core)
 	//assign tx_clk1 = 5;
-	assign tx_clk = eth_mode  ? clk_125 : ena_10 ? clk_2p5 : clk_25 ;       	// GbE Mode   = 125MHz clock
+	assign tx_clk = eth_mode  ? clk_125 : ena_10 ? clk_2p5 : clk_25 ;       	  // GbE Mode   = 125MHz clock
                                                                                 //               ena_10?  :      
                                                                                 // 10Mb Mode  = 2.5MHz clock
-       	                                                                        //                        ;         
+       	                                                                       //                        ;         
                                                                                 // 100Mb Mode = 25 MHz clock
 	                          
 	// Clock for transmission in PHY chip
 	//assign gtx_clk1 = ;
-	assign ENET_GTX_CLK= eth_mode ? clk1_125 : ena_10 ? clk1_2p5 : clk1_25;     // GbE Mode   = 125MHz clock
+	assign ENET_GTX_CLK= eth_mode ? clk1_125 : ena_10 ? clk1_2p5 : clk1_25;      // GbE Mode   = 125MHz clock
          	                                                                    //      ena_10?  :      
                                                                                 // 10Mb Mode  = 2.5MHz clock
                                                                                 //               ;         
@@ -116,15 +126,15 @@ module simplified_tcp(  // module and port declaration: fill the gaps
    .tse_mac_mdio_connection_mdio_in        (mdio_in),                           // mdio_in (input)
    .tse_mac_mdio_connection_mdio_out       (mdio_out),                          // mdio_out (output)
    .tse_mac_mdio_connection_mdio_oen       (mdio_oen),     	                    // mdio_oen (output)
-   .tse_mac_rgmii_connection_rgmii_in      (ENET_RX_DATA),                      // rgmii_in (rx data, input)
-   .tse_mac_rgmii_connection_rgmii_out     (ENET_TX_DATA),	                    // gmii_out (tx data, output)
+   .tse_mac_rgmii_connection_rgmii_in      (ENET_RX_DATA_BUF),                  // rgmii_in (rx data, input)
+	.tse_mac_rgmii_connection_rgmii_out     (ENET_TX_DATA),	                    // gmii_out (tx data, output)
    .tse_mac_rgmii_connection_rx_control    (ENET_RX_DV),                        // rx_control (receive data valid, input)
-   .tse_mac_rgmii_connection_tx_control    (ENET_TX_EN),                        // tx_control (tx enable, output)
+	.tse_mac_rgmii_connection_tx_control    (ENET_TX_EN),                        // tx_control (tx enable, output)
    .tse_mac_status_connection_set_10       (),                                  // tse_mac_status_connection.set_10
    .tse_mac_status_connection_set_1000     (),                                  // set_1000
-   .tse_mac_status_connection_eth_mode     (eth_mode),	                        // eth_mode (output)
-   .tse_mac_status_connection_ena_10       (ena_10),          	                // ena_10 (output)
-   .tse_pcs_mac_rx_clock_connection_clk    (ENET_RX_CLK),                       // receive clock (input)
-   .tse_pcs_mac_tx_clock_connection_clk    (tx_clk)    	                        // transmit clock (input)
+   .tse_mac_status_connection_eth_mode     (eth_mode),	                       // eth_mode (output)
+   .tse_mac_status_connection_ena_10       (ena_10),          	                 // ena_10 (output)
+   .tse_pcs_mac_rx_clock_connection_clk    (rx_clk),                            // receive clock (input)
+	.tse_pcs_mac_tx_clock_connection_clk    (tx_clk)    	                       // transmit clock (input)
     );
 endmodule 

@@ -1,6 +1,6 @@
- -- Copyright (C) 2018  Intel Corporation. All rights reserved.
+ -- Copyright (C) 2019  Intel Corporation. All rights reserved.
  -- Your use of Intel Corporation's design tools, logic functions 
- -- and other software and tools, and its AMPP partner logic 
+ -- and other software and tools, and any partner logic 
  -- functions, and any output files from any of the foregoing 
  -- (including device programming or simulation files), and any 
  -- associated documentation or information are expressly subject 
@@ -10,7 +10,8 @@
  -- agreement, including, without limitation, that your use is for
  -- the sole purpose of programming logic devices manufactured by
  -- Intel and sold by Intel or its authorized distributors.  Please
- -- refer to the applicable agreement for further details.
+ -- refer to the applicable agreement for further details, at
+ -- https://fpgasoftware.intel.com/eula.
  -- 
  -- This is a Quartus Prime output file. It is for reporting purposes only, and is
  -- not intended for use as a Quartus Prime input file. This file cannot be used
@@ -63,7 +64,7 @@
  -- Pin directions (input, output or bidir) are based on device operating in user mode.
  ---------------------------------------------------------------------------------
 
-Quartus Prime Version 18.1.0 Build 625 09/12/2018 SJ Lite Edition
+Quartus Prime Version 19.1.0 Build 670 09/22/2019 SJ Lite Edition
 CHIP  "simplified_tcp"  ASSIGNED TO AN: 10CL025YE144I7G
 
 Pin Name/Usage               : Location  : Dir.   : I/O Standard      : Voltage : I/O Bank  : User Assignment
@@ -74,11 +75,11 @@ VCCA3                        : 3         : power  :                   : 2.5V    
 GND                          : 4         : gnd    :                   :         :           :                
 VCCINT                       : 5         : power  :                   : 1.2V    :           :                
 ~ALTERA_ASDO_DATA1~ / RESERVED_INPUT_WITH_WEAK_PULLUP : 6         : input  : 2.5 V             :         : 1         : N              
-S1_LED[3]                    : 7         : output : 2.5 V             :         : 1         : N              
+S1_LED[4]                    : 7         : output : 2.5 V             :         : 1         : N              
 ~ALTERA_FLASH_nCE_nCSO~ / RESERVED_INPUT_WITH_WEAK_PULLUP : 8         : input  : 2.5 V             :         : 1         : N              
 nSTATUS                      : 9         :        :                   :         : 1         :                
-S1_LED[2]                    : 10        : output : 2.5 V             :         : 1         : N              
-S1_LED[0]                    : 11        : output : 2.5 V             :         : 1         : N              
+S1_LED[6]                    : 10        : output : 2.5 V             :         : 1         : N              
+S1_LED[7]                    : 11        : output : 2.5 V             :         : 1         : N              
 ~ALTERA_DCLK~                : 12        : output : 2.5 V             :         : 1         : N              
 ~ALTERA_DATA0~ / RESERVED_INPUT_WITH_WEAK_PULLUP : 13        : input  : 2.5 V             :         : 1         : N              
 nCONFIG                      : 14        :        :                   :         : 1         :                
@@ -165,14 +166,14 @@ MSEL0                        : 94        :        :                   :         
 GND                          : 95        : gnd    :                   :         :           :                
 MSEL1                        : 96        :        :                   :         : 6         :                
 MSEL2                        : 97        :        :                   :         : 6         :                
-S1_LED[4]                    : 98        : output : 2.5 V             :         : 6         : N              
+RESERVED_INPUT_WITH_WEAK_PULLUP : 98        :        :                   :         : 6         :                
 RESERVED_INPUT_WITH_WEAK_PULLUP : 99        :        :                   :         : 6         :                
-S1_LED[7]                    : 100       : output : 2.5 V             :         : 6         : N              
+RESERVED_INPUT_WITH_WEAK_PULLUP : 100       :        :                   :         : 6         :                
 ~ALTERA_nCEO~ / RESERVED_OUTPUT_OPEN_DRAIN : 101       : output : 2.5 V             :         : 6         : N              
 VCCINT                       : 102       : power  :                   : 1.2V    :           :                
-RESERVED_INPUT_WITH_WEAK_PULLUP : 103       :        :                   :         : 6         :                
+S1_LED[3]                    : 103       : output : 2.5 V             :         : 6         : N              
 GND                          : 104       : gnd    :                   :         :           :                
-RESERVED_INPUT_WITH_WEAK_PULLUP : 105       :        :                   :         : 6         :                
+S1_LED[1]                    : 105       : output : 2.5 V             :         : 6         : N              
 RESERVED_INPUT_WITH_WEAK_PULLUP : 106       :        :                   :         : 6         :                
 VCCA2                        : 107       : power  :                   : 2.5V    :           :                
 GNDA2                        : 108       : gnd    :                   :         :           :                
@@ -199,8 +200,8 @@ GND+                         : 128       :        :                   :         
 GND+                         : 129       :        :                   :         : 8         :                
 VCCIO8                       : 130       : power  :                   : 2.5V    : 8         :                
 GND                          : 131       : gnd    :                   :         :           :                
-S1_LED[5]                    : 132       : output : 2.5 V             :         : 8         : N              
-S1_LED[6]                    : 133       : output : 2.5 V             :         : 8         : N              
+S1_LED[0]                    : 132       : output : 2.5 V             :         : 8         : N              
+S1_LED[5]                    : 133       : output : 2.5 V             :         : 8         : N              
 VCCINT                       : 134       : power  :                   : 1.2V    :           :                
 ENET_RX_CLK                  : 135       : input  : 2.5 V             :         : 8         : Y              
 ENET_RX_DV                   : 136       : input  : 2.5 V             :         : 8         : Y              
@@ -211,5 +212,5 @@ GND                          : 140       : gnd    :                   :         
 ENET_RX_DATA[1]              : 141       : input  : 2.5 V             :         : 8         : Y              
 ENET_RX_DATA[2]              : 142       : input  : 2.5 V             :         : 8         : Y              
 ENET_RX_DATA[3]              : 143       : input  : 2.5 V             :         : 8         : Y              
-S1_LED[1]                    : 144       : output : 2.5 V             :         : 8         : N              
+S1_LED[2]                    : 144       : output : 2.5 V             :         : 8         : N              
 GND                          : EPAD      :        :                   :         :           :                
