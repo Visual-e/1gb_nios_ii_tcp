@@ -11,8 +11,8 @@
 *.prw
 *.psm
 *.mti
-*/db/
-*/incremental_db/
+/db/
+/incremental_db/
 **/simulation/
 *.suo
 **/bin/Debug
